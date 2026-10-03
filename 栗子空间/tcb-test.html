@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 【关键】禁止 Referer：TCB 鉴权只认 Origin 来源校验（实测带 Referer 会被拒 INVALID_REQUEST_SOURCE） -->
+    <meta name="referrer" content="no-referrer">
+    <title>TCB 匿名登录测试</title>
+</head>
+<body>
+    <h1>TCB 匿名登录测试</h1>
+    <div id="log" style="font-family:monospace; white-space:pre-wrap; background:#f5f5f5; padding:20px; border-radius:8px; max-height:80vh; overflow:auto;"></div>
+    <script src="https://static.cloudbase.net/cloudbase-js-sdk/2.27.1/cloudbase.full.js"></script>
+    <script>
+        var logEl = document.getElementById('log');
+        function log(msg) {
+            logEl.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        async function runTest() {
+            try {
+                log('=== TCB 匿名登录测试 ===');
+                log('1. 检查 window.cloudbase: ' + (typeof cloudbase !== 'undefined' ? '✅ 存在' : '❌ 不存在'));
+
+                if (typeof cloudbase === 'undefined') {
+                    log('❌ SDK 未加载！请检查网络。');
+                    return;
+                }
+
+                log('2. cloudbase.init...');
+                var app = cloudbase.init({ env: 'kongjian-d9gplvfce4e66ddb4' });
+                log('   app 创建: ✅');
+                log('   app.auth 类型: ' + typeof app.auth);
+
+                log('3. 获取 auth 对象...');
+                var auth = app.auth({ persistence: 'local' });
+                log('   auth 对象: ✅');
+
+                log('4. 检查 auth 上的方法:');
+                log('   - anonymousAuthProvider: ' + typeof auth.anonymousAuthProvider);
+                log('   - signInAnonymously: ' + typeof auth.signInAnonymously);
+                log('   - getLoginState: ' + typeof auth.getLoginState);
+                log('   - getUserInfo: ' + typeof auth.getUserInfo);
+                log('   - hasLoginState: ' + typeof auth.hasLoginState);
+
+                log('5. 先检查是否已有登录态...');
+                if (typeof auth.hasLoginState === 'function') {
+                    var hasState = auth.hasLoginState();
+                    log('   hasLoginState(): ' + hasState);
+                }
+                if (typeof auth.getLoginState === 'function') {
+                    try {
+                        var existingState = await auth.getLoginState();
+                        log('   getLoginState(): ' + JSON.stringify(existingState));
+                    } catch(e) {
+                        log('   getLoginState() 报错: ' + e.message);
+                    }
+                }
+
+                log('6. 尝试匿名登录 (anonymousAuthProvider().signIn())...');
+                try {
+                    if (typeof auth.anonymousAuthProvider === 'function') {
+                        var provider = auth.anonymousAuthProvider();
+                        log('   provider: ' + JSON.stringify(Object.keys(provider || {})));
+                        var signInRes = await provider.signIn();
+                        log('   signIn 结果: ' + JSON.stringify(signInRes));
+                    } else {
+                        log('   ❌ anonymousAuthProvider 不存在');
+                    }
+                } catch(e) {
+                    log('   ❌ M1 失败: code=' + e.code + ' message=' + e.message);
+                }
+
+                log('7. 尝试直接 signInAnonymously...');
+                try {
+                    if (typeof auth.signInAnonymously === 'function') {
+                        var res2 = await auth.signInAnonymously();
+                        log('   signInAnonymously 结果: ' + JSON.stringify(res2));
+                    } else {
+                        log('   ❌ signInAnonymously 不存在');
+                    }
+                } catch(e) {
+                    log('   ❌ M3 失败: code=' + e.code + ' message=' + e.message);
+                }
+
+                log('8. 获取登录态...');
+                try {
+                    var loginState = await auth.getLoginState();
+                    log('   loginState: ' + JSON.stringify(loginState, null, 2));
+                } catch(e) {
+                    log('   getLoginState 失败: ' + e.message);
+                }
+
+                try {
+                    var userInfo = await auth.getUserInfo();
+                    log('   userInfo: ' + JSON.stringify(userInfo, null, 2));
+                } catch(e) {
+                    log('   getUserInfo 失败: ' + e.message);
+                }
+
+                log('9. 测试云存储...');
+                try {
+                    var storage = app.storage();
+                    log('   storage 对象: ✅');
+                    log('   storage.uploadFile: ' + typeof storage.uploadFile);
+
+                    log('   尝试上传测试文件...');
+                    var testBlob = new Blob([JSON.stringify({test: true, time: Date.now()})], {type: 'application/json'});
+                    var uploadRes = await storage.uploadFile({
+                        cloudPath: 'lizi-space/test-' + Date.now() + '.json',
+                        filePath: testBlob
+                    });
+                    log('   ✅ 上传成功! fileID: ' + (uploadRes.fileID || uploadRes.fileId || JSON.stringify(uploadRes)));
+                } catch(e) {
+                    log('   ❌ 存储测试失败: code=' + e.code + ' message=' + e.message);
+                    log('   尝试直接用 app.uploadFile...');
+                    try {
+                        var testBlob2 = new Blob([JSON.stringify({test: true, time: Date.now()})], {type: 'application/json'});
+                        var uploadRes2 = await app.uploadFile({
+                            cloudPath: 'lizi-space/test-direct-' + Date.now() + '.json',
+                            filePath: testBlob2
+                        });
+                        log('   ✅ app.uploadFile 成功! ' + JSON.stringify(uploadRes2));
+                    } catch(e2) {
+                        log('   ❌ app.uploadFile 也失败: ' + e2.message);
+                    }
+                }
+
+                log('\n=== 测试完成 ===');
+
+            } catch(err) {
+                log('❌ 严重错误: ' + err.message);
+                log('   stack: ' + (err.stack || '').slice(0, 500));
+            }
+        }
+
+        runTest();
+    </script>
+</body>
+</html>
