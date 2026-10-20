@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 cd /d "%~dp0"
 echo.
@@ -24,7 +24,17 @@ if errorlevel 1 (
     exit /b 1
 )
 echo.
-echo [4/4] 部署 kongjian.html ...
+echo [4/6] 部署 kongjian.html ...
+call tcb hosting deploy sw.js sw.js -e kongjian-d9gplvfce4e66ddb4
+if errorlevel 1 (
+    echo.
+    echo ⚠ sw.js 部署失败（PWA 离线需此文件），继续部署其余文件。
+)
+echo [5/6] 部署 manifest.json ...
+call tcb hosting deploy manifest.json manifest.json -e kongjian-d9gplvfce4e66ddb4
+echo [6/6] 部署图标 ...
+call tcb hosting deploy icons\icon-192.png icons/icon-192.png -e kongjian-d9gplvfce4e66ddb4
+call tcb hosting deploy icons\icon-512.png icons/icon-512.png -e kongjian-d9gplvfce4e66ddb4
 call tcb hosting deploy kongjian.html kongjian.html -e kongjian-d9gplvfce4e66ddb4
 echo.
 echo ====================================
@@ -33,3 +43,4 @@ echo 线上地址：https://kongjian-d9gplvfce4e66ddb4-1455016831.tcloudbaseapp.
 echo 提示：手机如果看到的还是旧版，是 CDN 缓存，等几分钟后强刷即可。
 echo ====================================
 pause
+
