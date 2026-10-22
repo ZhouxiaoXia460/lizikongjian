@@ -4,7 +4,7 @@
 //   · 同源静态资源（图标/清单等）：缓存优先
 //   · 腾讯云 CDN 的 SDK 脚本：缓存优先后台刷新（离线时仍能初始化页面骨架）
 //   · 云端 API / 其它第三方请求：一律直连网络，不做任何缓存（不碰业务数据）
-const CACHE = 'lizikongjian-v3';
+const CACHE = 'lizikongjian-v4';
 const CORE = [
     './',
     './index.html',

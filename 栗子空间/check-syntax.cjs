@@ -5,7 +5,7 @@ const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
 
-const file = path.join(__dirname, 'kongjian.html'); // 编辑源（deploy.bat 会先 copy 到 index.html 再部署）
+const file = path.join(__dirname, 'index.html'); // 编辑源（先查 index.html 本体，避免误查旧的 kongjian.html）
 let html;
 try {
     html = fs.readFileSync(file, 'utf8');
@@ -30,6 +30,12 @@ if (blocks.length === 0) {
     console.error('❌ 没有找到可检查的内联 <script> 块，请确认文件完整。');
     process.exit(1);
 }
+
+// kongjian.html 与 index.html 不一致时提示（部署前会 copy，两者应当同步）
+try {
+    const kj = fs.readFileSync(path.join(__dirname, 'kongjian.html'), 'utf8');
+    if (kj !== html) console.warn('⚠️  kongjian.html 与 index.html 不一致（部署脚本会自动覆盖）；以下检查的是 index.html。');
+} catch (e) {}
 
 let failed = false;
 blocks.forEach((code, i) => {

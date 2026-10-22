@@ -569,6 +569,22 @@
             box-shadow: 0 4px 12px rgba(166, 109, 58, 0.18);
         }
         .nav-item.active .nav-label { color: var(--chestnut-700); font-weight: 600; }
+        /* —— 底部导航未读徽章（聊天/手帐/倒数日/备忘录） —— */
+        .nav-item .nav-icon { position: relative; }
+        .nav-unread-dot {
+            position: absolute; top: -4px; right: -7px;
+            min-width: 16px; height: 16px; padding: 0 4px;
+            border-radius: 999px; background: #EF5533; color: #fff;
+            font-size: 9px; font-weight: 700; line-height: 16px; text-align: center;
+            box-shadow: 0 2px 6px rgba(239, 85, 51, 0.45);
+            border: 1.5px solid #FFFDF8;
+            display: none; z-index: 5; pointer-events: none;
+        }
+        .nav-unread-dot.show { display: block; animation: navUnreadPop 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes navUnreadPop { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* 未读红点/角标（手帐卡片、备忘条目内使用） */
+        .unread-new-dot { display: inline-block; width: 7px; height: 7px; border-radius: 999px; background: #EF5533; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(239, 85, 51, 0.15); }
+        .unread-new-chip { display: inline-flex; align-items: center; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: #EF5533; color: #fff; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(239, 85, 51, 0.4); flex-shrink: 0; vertical-align: 1px; }
         /* 首页图标：栗子+柿子小组合 */
         .nav-home-icon { position: relative; }
         .nav-home-icon .nav-home-mini {
@@ -688,9 +704,18 @@
         #isoWorld { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
         .iso-cell-hi { position: absolute; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); background: rgba(240, 166, 192, 0.5); pointer-events: none; z-index: 500; }
         .furn-item { position: absolute; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; }
-        .furn-item .furn-svg { display: block; transition: filter 0.15s, transform 0.15s; }
+        .furn-item .furn-svg { display: block; transition: filter 0.16s ease, transform 0.16s ease; }
         .furn-item:hover .furn-svg { filter: drop-shadow(0 0 5px rgba(240, 166, 192, 0.95)); }
-        .furn-item.iso-selected .furn-svg { filter: drop-shadow(0 0 7px rgba(240, 166, 192, 1)); transform: translateY(-5px); }
+        /* —— 二阶选中制：选中态 = 主题色高亮描边 + 轻微放大（颜色随主题切换） —— */
+        .furn-item.iso-selected .furn-svg, .iso-win-item.iso-selected .win-svg { filter: drop-shadow(0 0 2px rgba(217, 165, 110, 0.95)) drop-shadow(0 0 9px rgba(240, 166, 192, 0.9)); transform: translateY(-4px) scale(1.05); }
+        #isoWorld[data-theme='cozy'] .iso-selected .furn-svg, #isoWorld[data-theme='cozy'] .iso-win-item.iso-selected .win-svg { filter: drop-shadow(0 0 2px rgba(217, 165, 110, 0.95)) drop-shadow(0 0 9px rgba(217, 165, 110, 0.8)); }
+        #isoWorld[data-theme='beach'] .iso-selected .furn-svg, #isoWorld[data-theme='beach'] .iso-win-item.iso-selected .win-svg { filter: drop-shadow(0 0 2px rgba(111, 191, 216, 0.95)) drop-shadow(0 0 9px rgba(111, 191, 216, 0.8)); }
+        #isoWorld[data-theme='apart'] .iso-selected .furn-svg, #isoWorld[data-theme='apart'] .iso-win-item.iso-selected .win-svg { filter: drop-shadow(0 0 2px rgba(201, 142, 90, 0.95)) drop-shadow(0 0 9px rgba(201, 142, 90, 0.8)); }
+        #isoWorld[data-theme='cyber'] .iso-selected .furn-svg, #isoWorld[data-theme='cyber'] .iso-win-item.iso-selected .win-svg { filter: drop-shadow(0 0 2px rgba(244, 154, 198, 0.98)) drop-shadow(0 0 10px rgba(244, 154, 198, 0.85)); }
+        .iso-win-item { position: absolute; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; }
+        .iso-win-item .win-svg { display: block; transition: filter 0.16s ease, transform 0.16s ease; }
+        .iso-win-item:hover .win-svg { filter: drop-shadow(0 0 5px rgba(240, 166, 192, 0.95)); }
+        .iso-win-item.iso-dragging .win-svg { opacity: 0.7; }
         .furn-item.iso-dragging { cursor: grabbing; }
         .furn-item.iso-dragging .furn-svg { opacity: 0.7; }
         .furn-ghost { position: fixed; pointer-events: none; opacity: 0.8; z-index: 9999; line-height: 1; }
@@ -710,7 +735,14 @@
         .iso-ctx-menu button:hover { background: #FFF4E5; }
         .iso-ctx-menu button.danger { color: #C2543A; }
         #gameRoomPage.iso-focus #isoFocusHide { display: none !important; }
-        #gameRoomPage.iso-focus #isoViewport { height: min(76vh, 700px); }
+        /* —— 3.2 安全区适配：编辑态锁定一屏，画布底边严格对齐全局底部导航栏顶缘 —— */
+        #gameRoomPage.iso-editing { height: 100vh; height: 100dvh; overflow-y: auto; overflow-x: hidden; padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+        #gameRoomPage.iso-editing #isoEditView:not(.hidden) { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+        #gameRoomPage.iso-editing #isoViewport { flex: 1 1 auto; height: auto; min-height: 280px; }
+        /* —— 全屏（专注模式）：临时隐藏底部导航栏，画布延伸至屏幕底部；退出后恢复安全区布局 —— */
+        #gameRoomPage.iso-editing.iso-focus { padding-bottom: 0 !important; }
+        #gameRoomPage.iso-focus ~ #bottomNavBar { display: none !important; }
+        #gameRoomPage.iso-focus #isoViewport { flex: 1 1 auto; height: auto; min-height: 0; }
         #isoFocusExit { z-index: 40; }
         .iso-progress-track { height: 8px; border-radius: 999px; background: #F5DEC2; overflow: hidden; flex: 1; min-width: 60px; }
         .iso-progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #F0A6C0, #D9A56E); transition: width 0.3s; }
@@ -771,13 +803,24 @@
         .iso-zoom-wrap { width: 38px; height: 110px; }
         .iso-zoom-wrap input[type=range] { width: 110px; left: -36px; top: 41px; }
     }
-        #isoLibFab { display: none; }
         #gameRoomPage { overscroll-behavior: contain; }
+        /* —— 3.3 家具库：底部抽屉（深色磨砂毛玻璃，默认展开约半屏，顶部保留房间画布可视；全端统一） —— */
+        #isoLib { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); width: min(620px, calc(100% - 16px)); z-index: 70; transform: translate(-50%, 130%); opacity: 0; pointer-events: none; border-radius: 22px; border: 1.5px solid rgba(245, 222, 194, 0.4); background: rgba(44, 33, 22, 0.82); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); box-shadow: 0 -12px 42px rgba(30, 18, 8, 0.38); transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease; color: #FFF6EA; }
+        #isoLib.lib-open { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+        .iso-lib-grab { width: 46px; height: 5px; border-radius: 5px; background: rgba(255, 246, 234, 0.32); margin: 8px auto 0; }
+        .iso-lib-head { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 56px 8px 12px; }
+        .iso-lib-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: #FFF6EA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .iso-lib-title em { font-style: normal; font-weight: 500; font-size: 10px; color: rgba(255, 246, 234, 0.72); margin-left: 6px; }
+        .iso-lib-collapse { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 7px 18px; border-radius: 999px; border: 1.5px solid rgba(245, 222, 194, 0.52); background: rgba(255, 246, 234, 0.14); color: #FFF6EA; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.16s ease; white-space: nowrap; }
+        .iso-lib-collapse:active { transform: translateX(-50%) scale(0.92); }
+        .iso-lib-chev { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; border: 1.5px solid rgba(245, 222, 194, 0.35); background: rgba(255, 246, 234, 0.1); color: #FFF6EA; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease; }
+        #isoLibBody { max-height: 44vh; overflow-y: auto; -webkit-overflow-scrolling: touch; border-top: 1px solid rgba(245, 222, 194, 0.18); padding-top: 8px; }
+        #isoLib .iso-space-tab { background: rgba(255, 251, 245, 0.94); }
+        #isoLib .iso-space-tab.selected { background: linear-gradient(135deg, #FFE8CC, #FFF4E5); }
+        #isoComboRow > span { color: rgba(255, 246, 234, 0.75) !important; }
+        #isoLibFab { display: flex; align-items: center; justify-content: center; }
         @media (max-width: 639px) {
             #isoLibFab { display: flex; align-items: center; justify-content: center; }
-            #isoLib { position: fixed; left: 10px; right: 10px; bottom: 88px; z-index: 70; margin-top: 0 !important; transform: translateY(135%); transition: transform 0.28s ease; box-shadow: 0 -10px 34px rgba(94, 58, 32, 0.22); }
-            #isoLib.sheet-open { transform: translateY(0); }
-            #isoLibBody { max-height: 40vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
             #isoLibTabs, #isoSpaceTabs, #isoFloorToggles, #isoThemeRow, #isoComboRow { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
             #isoLibTabs::-webkit-scrollbar, #isoSpaceTabs::-webkit-scrollbar { display: none; }
             #isoLibTabs .iso-space-tab, #isoSpaceTabs .iso-space-tab { white-space: nowrap; flex: 0 0 auto; }
@@ -788,6 +831,15 @@
             .furn-item.iso-dragging .furn-svg { opacity: 0.75; transform: translateY(-9px) scale(1.06); }
             #isoEditView #isoFocusHide button { min-height: 42px; }
             #isoItemSelected { max-width: 72px; overflow: hidden; text-overflow: ellipsis; }
+        }
+        /* —— 3.2/3.3 小屏紧凑补丁：压缩头部行高，保证抽屉展开时画布顶部仍可视 —— */
+        @media (max-width: 639px) {
+            .iso-chip-btn { font-size: 11px; padding: 6px 10px; }
+            .iso-space-tab { font-size: 12px; padding: 7px 12px; }
+            .iso-theme-btn { font-size: 11px; padding: 7px 11px; }
+            #isoComboRow .iso-space-tab, #isoComboRow .iso-theme-btn { white-space: nowrap; flex: 0 0 auto; }
+            .iso-lib-title em { display: none; }
+            #isoLibBody { max-height: 42vh; }
         }
         @keyframes pal-zzz-float { 0%, 100% { transform: translateY(0); opacity: 0.55; } 50% { transform: translateY(-5px); opacity: 1; } }
         .toast-container {
@@ -1736,6 +1788,7 @@
             </div>
             <div class="flex gap-2 overflow-x-auto pb-3 mb-3 -mx-5 px-5 scrollbar-hide fade-in-up fade-in-up-delay-1" style="scrollbar-width: none; -ms-overflow-style: none;">
                 <button class="journal-tag tag-pill active px-4 py-2 rounded-full text-sm whitespace-nowrap bg-white text-[#85532E] border border-[#F5DEC2] font-medium" data-tag="all">全部</button>
+                <button class="journal-tag tag-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-white text-[#A66D3A] border border-[#F5DEC2] font-medium" data-tag="__unread">🔴 未读</button>
                 <button class="journal-tag tag-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-white text-[#A66D3A] border border-[#F5DEC2] font-medium" data-tag="约会日记">💕 约会日记</button>
                 <button class="journal-tag tag-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-white text-[#A66D3A] border border-[#F5DEC2] font-medium" data-tag="美食探店">🍜 美食探店</button>
                 <button class="journal-tag tag-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-white text-[#A66D3A] border border-[#F5DEC2] font-medium" data-tag="旅行记录">✈️ 旅行记录</button>
@@ -1841,6 +1894,8 @@
                     <span class="text-base leading-none">+</span> 添加
                 </button>
             </div>
+            <!-- 🔴 未读筛选（本次进页后新出现的日期可一键筛出） -->
+            <div id="cdUnreadChipRow" class="mb-3 fade-in-up fade-in-up-delay-1"></div>
             <!-- 下次见面：两个人的专属约定（renderNextMeeting 渲染） -->
             <div id="nextMeetingCard" class="mb-6 fade-in-up fade-in-up-delay-1"></div>
             <div class="mb-6 fade-in-up fade-in-up-delay-1">
@@ -2206,26 +2261,29 @@
                     <button id="isoLibFab" onclick="toggleIsoLib()" class="absolute left-3 bottom-3 w-12 h-12 rounded-2xl bg-white/95 border-2 border-[#F5DEC2] shadow-md text-xl active:scale-95 transition-transform" style="z-index:30;">🪑</button>
                     <div id="isoItemBar" class="hidden absolute left-1/2 bottom-3 items-center gap-1 bg-white/95 border-2 border-[#F5DEC2] rounded-full shadow-lg p-1" style="z-index:35; transform:translateX(-50%); max-width: calc(100% - 120px); overflow-x: auto;">
                         <span id="isoItemSelected" class="text-xs font-bold text-[#5E3A20] pl-2 pr-1 whitespace-nowrap"></span>
+                        <span id="isoItemMoveHint" class="hidden sm:inline text-[10px] text-[#B08968] pr-1 whitespace-nowrap">拖我移动</span>
                         <button id="isoItemToggle" onclick="isoToggleSelected()" class="hidden iso-act-btn">💡</button>
-                        <button onclick="isoScaleSelected(-1)" class="iso-act-btn" title="缩小一点">➖</button>
-                        <button onclick="isoScaleSelected(1)" class="iso-act-btn" title="放大一点">➕</button>
+                        <button id="isoItemSmaller" onclick="isoScaleSelected(-1)" class="iso-act-btn" title="缩小一点">➖</button>
+                        <button id="isoItemBigger" onclick="isoScaleSelected(1)" class="iso-act-btn" title="放大一点">➕</button>
                         <button onclick="isoCopySelected()" class="iso-act-btn" title="复制一件">📋</button>
                         <button onclick="isoRotateSelected()" class="iso-act-btn" title="旋转 90°">🔄</button>
                         <button onclick="isoRemoveSelected()" class="iso-act-btn" title="收起" style="color:#C2543A;">🗑</button>
                     </div>
                 </div>
-                <div id="isoLib" class="mt-3 bg-white border border-[#F5DEC2] rounded-2xl overflow-hidden">
-                    <button onclick="toggleIsoLib()" class="w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold text-[#5E3A20] hover:bg-[#FFF4E5] transition-colors">
-                        <span>🪑 家具库（全解锁 · 按住家具拖进房间 / 点击拿起）</span>
-                        <span id="isoLibChevron" class="transition-transform">▾</span>
-                    </button>
+                <div id="isoLib">
+                    <div class="iso-lib-grab"></div>
+                    <div class="iso-lib-head">
+                        <span class="iso-lib-title">🪑 家具库<em>全解锁 · 按住家具拖进房间 / 点击拿起</em></span>
+                        <button onclick="toggleIsoLib()" class="iso-lib-collapse">收起 ▾</button>
+                        <button onclick="toggleIsoLib()" id="isoLibChevron" class="iso-lib-chev" title="收起/展开家具库">▾</button>
+                    </div>
                     <div id="isoLibBody" class="px-3 pb-3">
                         <div id="isoComboRow" class="flex gap-1.5 mb-2 flex-wrap items-center pt-2"></div>
                         <div id="isoLibTabs" class="flex gap-1.5 mb-2 flex-wrap"></div>
                         <div id="isoLibItems" class="grid grid-cols-6 sm:grid-cols-10 gap-2"></div>
                     </div>
                 </div>
-                <p class="text-center text-[10px] text-[#B08968] mt-3">🖱 滚轮缩放 · 📱 双指缩放 / 单指平移 / 点家具弹操作栏 · R 旋转 · ♻️ 开启后点击即回收 · 布置自动保存在本机 · 断网也能玩</p>
+                <p class="text-center text-[10px] text-[#B08968] mt-3">🖱 滚轮缩放 · 📱 双指缩放 / 单击选中家具 → 再按住拖动 / 空白处平移视角 · R 旋转 · ♻️ 回收模式点击即收回 · 布置自动保存在本机 · 断网也能玩</p>
             </div>
         </div>
     </div>
@@ -2490,7 +2548,7 @@
 
                     <!-- 一键双向全量同步：拉取→合并→推回，所有数据一次到位 -->
                     <button type="button" id="fullSyncBtn" onclick="fullSyncAll()" class="w-full mb-1.5 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#D9A56E] to-[#A66D3A] shadow-md active:scale-[0.98] transition-all">🔄 一键同步全部数据</button>
-                    <p class="text-[10px] text-[#B08968] mb-3 text-center">聊天 · 手帐 · 备忘 · 记账攒钱 · 倒数日 · 动态 · 见面约定，双向合并一次完成</p>
+                    <p class="text-[10px] text-[#B08968] mb-3 text-center">聊天 · 手帐 · 备忘 · 记账攒钱 · 倒数日 · 动态 · 见面约定，双向合并一次完成；退出栗子空间时（切后台/关页面）也会自动同步一次</p>
                     <p class="text-[10px] text-[#C9B28F] text-center mb-3">🌰 栗子空间 <span id="appVersionLabel"></span> · 线上版本以此为准</p>
 
                     <div class="grid grid-cols-2 gap-2 mb-3">
@@ -2805,11 +2863,11 @@
                 <span class="nav-label text-xs text-[#B08968]">首页</span>
             </button>
             <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-0.5 px-1 py-1" data-tab="chat" aria-label="聊天">
-                <span class="nav-icon text-xl text-[#B08968]" id="navChatIcon">🍅</span>
+                <span class="nav-icon text-xl text-[#B08968]" id="navChatIcon">🍅<span class="nav-unread-dot" id="navUnread-chat"></span></span>
                 <span class="nav-label text-xs text-[#B08968]">聊天</span>
             </button>
             <button onclick="switchTab('journal')" class="nav-item flex flex-col items-center gap-0.5 px-1 py-1" data-tab="journal" aria-label="手帐">
-                <span class="nav-icon text-xl text-[#B08968]">📔</span>
+                <span class="nav-icon text-xl text-[#B08968]">📔<span class="nav-unread-dot" id="navUnread-journal"></span></span>
                 <span class="nav-label text-xs text-[#B08968]">手帐</span>
             </button>
             <button onclick="switchTab('account')" class="nav-item flex flex-col items-center gap-0.5 px-1 py-1" data-tab="account" aria-label="记账">
@@ -2817,11 +2875,11 @@
                 <span class="nav-label text-xs text-[#B08968]">记账</span>
             </button>
             <button onclick="switchTab('countdown')" class="nav-item flex flex-col items-center gap-0.5 px-1 py-1" data-tab="countdown" aria-label="倒数日">
-                <span class="nav-icon text-xl text-[#B08968]">📅</span>
+                <span class="nav-icon text-xl text-[#B08968]">📅<span class="nav-unread-dot" id="navUnread-countdown"></span></span>
                 <span class="nav-label text-xs text-[#B08968]">倒数日</span>
             </button>
             <button onclick="switchTab('memo')" class="nav-item flex flex-col items-center gap-0.5 px-1 py-1" data-tab="memo" aria-label="备忘录">
-                <span class="nav-icon text-xl text-[#B08968]">📝</span>
+                <span class="nav-icon text-xl text-[#B08968]">📝<span class="nav-unread-dot" id="navUnread-memo"></span></span>
                 <span class="nav-label text-xs text-[#B08968]">备忘录</span>
             </button>
         </div>
@@ -2911,7 +2969,7 @@
         // ==================== 数据层 ====================
         const STORAGE_KEY = 'lizi_space_final';
         // 版本号：每次部署更新（显示在 设置页 → 云同步状态 卡片底部，用于核对线上版本）
-        const APP_VERSION = '3.10.0';
+        const APP_VERSION = '3.12.0';
 
         function getDefaultData() {
             return {
@@ -2934,6 +2992,7 @@
                 nextMeeting: null, // 下次见面约定：{ date: 'YYYY-MM-DD', note: '', updatedAt }
                 truthQA: [],        // 真心话问答：{ id, q, cat, src, srcQid, createdBy, createdTime, answers: { userId: { text, st, time } } }
                 truthCustom: [],    // 二人专属题库：{ id, q, owner, time }
+                readMarks: {},      // 未读消息：每用户的已读标记 { [uid]: { _initAt, chatAt, jRead:{jid:ts}, cdSeen:{id:ts}, memoSeen:{id:ts} } }
                 _schemaVersion: 2 // 用于数据迁移
             };
         }
@@ -2973,6 +3032,8 @@
             if (!Array.isArray(appData.tombstones.memoLists)) appData.tombstones.memoLists = [];
             if (!Array.isArray(appData.tombstones.memoItems)) appData.tombstones.memoItems = [];
             if (!Array.isArray(appData.tombstones.accounts)) appData.tombstones.accounts = [];
+            // 未读消息：每用户已读标记（老数据补齐空对象）
+            if (!appData.readMarks || typeof appData.readMarks !== 'object') appData.readMarks = {};
             // 备忘录小票版：旧数据补 date/owner 字段，随手记固定存在
             if (!Array.isArray(appData.memoLists)) appData.memoLists = [];
             appData.memoLists.forEach(l => {
@@ -2991,6 +3052,12 @@
                 const d = new Date(j.createTime || Date.now());
                 j.date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
             });
+            // 动态只保留最近 7 天：启动时清一次过期动态（直接落盘，不走云推送）
+            try {
+                if (Array.isArray(appData.activities) && appData.activities.length && _pruneOldActivities() > 0) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+                }
+            } catch (e) {}
         }
 
         // ========== TCB 云开发同步接口 ==========
@@ -4672,6 +4739,7 @@
         };
 
         function saveData(options) {
+            window.__liziLastSaveAt = Date.now(); // 记录最后一次本地改动时间：退出同步用（晚于上次云同步才补推）
             localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
             // TCB云同步：节流推送（节省免费额度）
             if (TCB_CONFIG.enabled && typeof CloudSync === 'object' && CloudSync.schedulePush) {
@@ -4679,6 +4747,194 @@
                     CloudSync.schedulePush();
                 }
             }
+        }
+
+        // ==================== 未读消息（聊天 / 手帐 / 倒数日 / 备忘录） ====================
+        // 已读标记按用户存放在 appData.readMarks[uid]，随云快照双向同步：
+        //   chatAt   聊天已读水位线（打开聊天页即推进到现在）
+        //   jRead    { 手帐id: 已读时间戳 }（打开手帐详情即写入；TA 的新手帐/新留言都会让该篇变未读）
+        //   cdSeen   { 倒数日id: 已见时间戳 }（倒数日无作者字段，用“见过集合”判断）
+        //   memoSeen { 清单/条目id: 已见时间戳 }（备忘条目同样无作者字段）
+        // 双端合并策略：按用户取最大时间戳（每人只写自己的标记，取并集即安全）
+
+        // 老用户升级迁移：第一次运行时把现有内容全部记为已读，避免把历史内容全标成未读
+        function _initReadMarksIfNeeded() {
+            if (!appData.spaceId || !appData.currentUserId) return;
+            appData.readMarks = (appData.readMarks && typeof appData.readMarks === 'object') ? appData.readMarks : {};
+            const uid = appData.currentUserId;
+            if (appData.readMarks[uid] && appData.readMarks[uid]._initAt) return;
+            const now = Date.now();
+            // 水位线/已读线取「现有内容的最新时间戳」与当下时钟的较大值：对方设备时钟略快时也不会留下清不掉的红点
+            let newestMsg = 0;
+            (appData.messages || []).forEach(msg => { if (msg && (msg.time || 0) > newestMsg) newestMsg = msg.time || 0; });
+            const m = { _initAt: now, chatAt: Math.max(now, newestMsg), jRead: {}, cdSeen: {}, memoSeen: {} };
+            (appData.journals || []).forEach(j => {
+                if (!j || !j.id) return;
+                let newest = j.createTime || 0;
+                (j.comments || []).forEach(c => { if (c && (c.time || 0) > newest) newest = c.time || 0; });
+                m.jRead[j.id] = Math.max(now, newest);
+            });
+            (appData.countdowns || []).forEach(c => { if (c && c.id) m.cdSeen[c.id] = now; });
+            (appData.memoLists || []).forEach(l => {
+                if (!l || !l.id) return;
+                m.memoSeen[l.id] = now;
+                (l.items || []).forEach(it => { if (it && it.id) m.memoSeen[it.id] = now; });
+            });
+            appData.readMarks[uid] = m;
+            saveData();
+        }
+
+        // 取当前用户的已读标记（自动补齐字段）
+        function _myReadMarks() {
+            if (!appData.readMarks || typeof appData.readMarks !== 'object') appData.readMarks = {};
+            const uid = appData.currentUserId;
+            if (!uid) return { _initAt: 0, chatAt: 0, jRead: {}, cdSeen: {}, memoSeen: {} };
+            _initReadMarksIfNeeded();
+            const m = appData.readMarks[uid];
+            if (!m || typeof m !== 'object') {
+                appData.readMarks[uid] = { _initAt: Date.now(), chatAt: 0, jRead: {}, cdSeen: {}, memoSeen: {} };
+                return appData.readMarks[uid];
+            }
+            if (typeof m.chatAt !== 'number') m.chatAt = 0;
+            if (!m.jRead || typeof m.jRead !== 'object') m.jRead = {};
+            if (!m.cdSeen || typeof m.cdSeen !== 'object') m.cdSeen = {};
+            if (!m.memoSeen || typeof m.memoSeen !== 'object') m.memoSeen = {};
+            return m;
+        }
+
+        // 已读标记瘦身：清掉指向已删除内容的条目并限制容量，防止无限膨胀
+        function _pruneReadMarks() {
+            try {
+                const m = _myReadMarks();
+                const cap = function (obj, aliveSet, max) {
+                    let keys = Object.keys(obj).filter(id => aliveSet.has(id));
+                    if (keys.length > max) { keys.sort((a, b) => (obj[a] || 0) - (obj[b] || 0)); keys = keys.slice(-max); }
+                    const next = {}; keys.forEach(id => { next[id] = obj[id]; });
+                    return next;
+                };
+                const jIds = new Set((appData.journals || []).map(j => j && j.id).filter(Boolean));
+                m.jRead = cap(m.jRead, jIds, 400);
+                const cIds = new Set((appData.countdowns || []).map(c => c && c.id).filter(Boolean));
+                m.cdSeen = cap(m.cdSeen, cIds, 400);
+                const mIds = new Set();
+                (appData.memoLists || []).forEach(l => { if (l && l.id) { mIds.add(l.id); (l.items || []).forEach(it => { if (it && it.id) mIds.add(it.id); }); } });
+                m.memoSeen = cap(m.memoSeen, mIds, 800);
+            } catch (e) {}
+        }
+
+        // 当前未读统计（导航徽章与页面筛选用）
+        function getUnreadInfo() {
+            const info = { chat: 0, journal: 0, journalComments: 0, countdown: 0, memo: 0, journalIds: [], cdIds: [], memoIds: [] };
+            const uid = appData.currentUserId;
+            if (!uid || !appData.spaceId) return info;
+            const m = _myReadMarks();
+            (appData.messages || []).forEach(msg => {
+                if (msg && msg.senderId && msg.senderId !== uid && (msg.time || 0) > (m.chatAt || 0)) info.chat++;
+            });
+            (appData.journals || []).forEach(j => {
+                const ui = _journalUnreadInfo(j);
+                if (ui.un) { info.journal++; info.journalComments += ui.cmt; info.journalIds.push(j.id); }
+            });
+            (appData.countdowns || []).forEach(c => {
+                if (c && c.id && !m.cdSeen[c.id]) { info.countdown++; info.cdIds.push(c.id); }
+            });
+            (appData.memoLists || []).forEach(l => {
+                if (!l || !l.id) return;
+                if (!m.memoSeen[l.id]) { info.memo++; info.memoIds.push(l.id); return; } // 新清单整张算 1 条未读
+                (l.items || []).forEach(it => { if (it && it.id && !m.memoSeen[it.id]) { info.memo++; info.memoIds.push(it.id); } });
+            });
+            return info;
+        }
+
+        // 单篇手帐的未读状态：TA 新写的手帐，或这篇里 TA 的新留言
+        function _journalUnreadInfo(j) {
+            const uid = appData.currentUserId;
+            const res = { un: false, cmt: 0 };
+            if (!j || !j.id || !uid || !appData.spaceId) return res;
+            const m = _myReadMarks();
+            const mark = (m.jRead && m.jRead[j.id]) || 0;
+            if (j.authorId && j.authorId !== uid && (j.createTime || 0) > mark) res.un = true;
+            (j.comments || []).forEach(c => {
+                if (c && c.userId && c.userId !== uid && (c.time || 0) > mark) { res.un = true; res.cmt++; }
+            });
+            return res;
+        }
+
+        // 所有未读手帐 id（列表“只看未读”筛选用）
+        function _journalUnreadIds() {
+            const set = new Set();
+            (appData.journals || []).forEach(j => { if (j && j.id && _journalUnreadInfo(j).un) set.add(j.id); });
+            return set;
+        }
+
+        // —— 标记已读 ——
+        function markChatRead() {
+            const uid = appData.currentUserId;
+            if (!uid) return;
+            const m = _myReadMarks();
+            // 只在有未读时才写（避免聊天页每次重渲染都写盘推送）；
+            // 水位线取「当前最新消息时间」而不是当下时钟：对方设备时钟略快时也能把已显示的消息清干净
+            const hasUnread = (appData.messages || []).some(msg => msg && msg.senderId && msg.senderId !== uid && (msg.time || 0) > (m.chatAt || 0));
+            if (!hasUnread) return;
+            let newest = 0;
+            (appData.messages || []).forEach(msg => { if (msg && (msg.time || 0) > newest) newest = msg.time || 0; });
+            const target = Math.max(Date.now(), newest);
+            if (target > (m.chatAt || 0)) {
+                m.chatAt = target;
+                saveData();
+                updateUnreadBadges();
+            }
+        }
+
+        function markJournalRead(journalId) {
+            if (!journalId || !appData.currentUserId) return;
+            const m = _myReadMarks();
+            // 已读线取「这篇里最新内容的时间」（手帐创建/留言）而不是当下时钟：对方时钟略快也能清干净
+            let newest = 0;
+            const j = (appData.journals || []).find(x => x && x.id === journalId);
+            if (j) {
+                newest = j.createTime || 0;
+                (j.comments || []).forEach(c => { if (c && (c.time || 0) > newest) newest = c.time || 0; });
+            }
+            // 直接写：写入幂等，推送有 3 秒节流，不做防抖（避免漏掉紧随其后的新留言）
+            m.jRead[journalId] = Math.max(Date.now(), newest);
+            _pruneReadMarks();
+            saveData();
+            updateUnreadBadges();
+        }
+
+        // 本次进入“倒数日/备忘录”页以来新出现的内容（会话级集合，切走即清；筛选与 NEW 角标用）
+        function _ensureVisitSet(key) {
+            if (window.__visitTabKey !== key || !window.__visitUnread) {
+                window.__visitTabKey = key;
+                window.__visitUnread = new Set();
+            }
+            return window.__visitUnread;
+        }
+
+        // 自己刚创建的内容立即记为已见，避免出现在自己的未读里
+        function _markOwnSeenId(mapKey, id) {
+            if (!id || !appData.currentUserId) return;
+            const m = _myReadMarks();
+            m[mapKey][id] = Date.now();
+        }
+
+        // 底部导航红点徽章（聊天/手帐/倒数日/备忘录）
+        function updateUnreadBadges() {
+            let info;
+            try { info = getUnreadInfo(); } catch (e) { return; }
+            const map = { chat: info.chat, journal: info.journal, countdown: info.countdown, memo: info.memo };
+            Object.keys(map).forEach(k => {
+                const el = document.getElementById('navUnread-' + k);
+                if (!el) return;
+                const n = map[k] || 0;
+                if (n > 0) {
+                    el.textContent = n > 99 ? '99+' : String(n);
+                    el.classList.add('show');
+                } else {
+                    el.classList.remove('show');
+                }
+            });
         }
 
         // ==================== 工具函数 ====================
@@ -5022,6 +5278,7 @@
             document.getElementById('bottomNavBar').classList.remove('hidden');
             switchTab('home');
             fitChatInputBar();
+            setTimeout(function () { try { enterSpaceSync(); } catch (e) {} }, 1200); // 进入空间自动同步一次
         }
 
         // —— 聊天输入栏贴合底部导航：动态量取导航栏实际高度（含全面屏安全区），消除两栏之间的缝隙 ——
@@ -5079,6 +5336,10 @@
             if (tab === 'memo') renderMemoLists();
             if (tab === 'settings') renderSettingsPage();
             if (tab === 'chat') renderChatPage();
+
+            // 未读：离开倒数日/备忘录页时作废“本次浏览”集合；渲染后刷新导航红点
+            if (tab !== 'countdown' && tab !== 'memo') window.__visitTabKey = null;
+            try { updateUnreadBadges(); } catch (e) {}
 
             // 渲染后再次确保滚动位置（关键修复：内容渲染后高度变化可能影响滚动）
             requestAnimationFrame(() => {
@@ -5145,6 +5406,7 @@
 
         function addActivity(action) {
             const user = getCurrentUser();
+            _pruneOldActivities(); // 动态只保留近 7 天：新增前先清掉过期项
             appData.activities.unshift({
                 id: 'act_' + Date.now(),
                 userId: appData.currentUserId,
@@ -5181,9 +5443,8 @@
             addActivity('上线啦 · ' + greet);
         }
 
-        // —— 空间动态：日期筛选（快捷范围 + 📅 单日定位）+ 关键词查找 ——
-        let actFilterDay = null;      // 'YYYY-MM-DD'，null = 不按单日筛
-        let actFilterRange = null;    // 'today' | 'd3' | 'd7' | 'd30'，null = 不按范围筛
+        // —— 空间动态：快捷范围筛选（只保留 全部/今天/近3天）+ 关键词查找；动态本体只保留近 7 天 ——
+        let actFilterRange = null;    // 'today' | 'd3'，null = 不按范围筛
         let actSearchQuery = '';      // 关键词（小写）
 
         function _actDayKey(ts) {
@@ -5204,44 +5465,23 @@
             if (parts[0] !== now.getFullYear()) return parts[0] + '年' + md + ' ' + week;
             return md + ' ' + week;
         }
-        // —— 快捷范围筛选芯片（全部/今天/近3天/近7天/近30天）+ 📅 日期查找 ——
+        // —— 快捷范围筛选芯片（只保留 全部/今天/近3天） ——
         function renderActivityChips() {
             const row = document.getElementById('activityChipsRow');
             if (!row) return;
-            const allOn = !actFilterRange && !actFilterDay;
             const ranges = [
-                { key: 'all', label: '全部', on: allOn },
+                { key: 'all', label: '全部', on: !actFilterRange },
                 { key: 'today', label: '🗓 今天', on: actFilterRange === 'today' },
-                { key: 'd3', label: '近3天', on: actFilterRange === 'd3' },
-                { key: 'd7', label: '近7天', on: actFilterRange === 'd7' },
-                { key: 'd30', label: '近30天', on: actFilterRange === 'd30' }
+                { key: 'd3', label: '近3天', on: actFilterRange === 'd3' }
             ];
-            let html = ranges.map(r => '<button onclick="selectActivityRange(\'' + r.key + '\')" class="memo-chip ' + (r.on ? 'on' : '') + '">' + r.label + '</button>').join('');
-            const dateOn = !!actFilterDay;
-            html += '<span class="memo-chip ' + (dateOn ? 'on' : '') + '" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;">' +
-                '<span style="font-size:12px;">📅</span>' +
-                '<input type="date" class="memo-date-input" value="' + (actFilterDay || '') + '" onchange="locateActivityDate(this.value)" title="查某一天的动态">' +
-                (dateOn ? '<button type="button" onclick="selectActivityDay(null)" title="清除日期定位" style="background:none;border:none;cursor:pointer;color:inherit;font-size:11px;padding:0 2px;">✕</button>' : '') +
-                '</span>';
-            row.innerHTML = html;
+            row.innerHTML = ranges.map(r => '<button onclick="selectActivityRange(\'' + r.key + '\')" class="memo-chip ' + (r.on ? 'on' : '') + '">' + r.label + '</button>').join('');
         }
         function selectActivityRange(key) {
             const r = key === 'all' ? null : key;
             actFilterRange = (actFilterRange === r) ? null : r; // 再点一次取消
-            if (actFilterRange) actFilterDay = null;            // 范围与单日互斥
             renderActivityChips();
             renderActivityFilterChip();
             renderActivityList();
-        }
-        // 📅 日期查找：只看某一天的动态
-        function locateActivityDate(value) {
-            if (!value) return;
-            actFilterDay = value;
-            actFilterRange = null;
-            renderActivityChips();
-            renderActivityFilterChip();
-            renderActivityList();
-            showToast('已定位到 ' + _actDayTitle(value));
         }
         function toggleActivitySearch() {
             const wrap = document.getElementById('activitySearchWrap');
@@ -5261,13 +5501,6 @@
             actSearchQuery = '';
             const input = document.getElementById('activitySearchInput');
             if (input) input.value = '';
-            renderActivityFilterChip();
-            renderActivityList();
-        }
-        function selectActivityDay(key) {
-            actFilterDay = key || null;
-            actFilterRange = null; // 单日与范围互斥
-            renderActivityChips();
             renderActivityFilterChip();
             renderActivityList();
         }
@@ -5297,20 +5530,18 @@
             // 关键词过滤（动态内容 + 昵称）
             const q = actSearchQuery || '';
             if (q) acts = acts.filter(a => ((a.action || '') + ' ' + (a.userName || '')).toLowerCase().indexOf(q) >= 0);
-            // 快捷范围过滤（按自然日：近3天=今天+前两天，以此类推）
+            // 快捷范围过滤（按自然日：近3天=今天+前两天）
             if (actFilterRange) {
                 const now = new Date();
                 const startOfDay = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-                const backDays = actFilterRange === 'today' ? 0 : actFilterRange === 'd3' ? 2 : actFilterRange === 'd7' ? 6 : 29;
+                const backDays = actFilterRange === 'today' ? 0 : 2;
                 const cutoff = startOfDay(now) - backDays * 86400000;
                 acts = acts.filter(a => (a.time || 0) >= cutoff);
             }
-            // 日期过滤（按日）
-            if (actFilterDay) acts = acts.filter(a => _actDayKey(a.time) === actFilterDay);
             if (!acts.length) {
                 const emptyTip = actFilterRange
                     ? (actFilterRange === 'today' ? '今天还没有动态～' : '最近这几天还没有动态～')
-                    : (q ? ('没有包含「' + escapeHtml(actSearchQuery) + '」的动态') : ('这一天还没有动态～'));
+                    : (q ? ('没有包含「' + escapeHtml(actSearchQuery) + '」的动态') : '暂无动态～');
                 list.innerHTML = `
                     <div class="empty-state py-6 -mx-2">
                         <div class="empty-state-icon" style="font-size:42px; margin-bottom:10px;">🍃</div>
@@ -5364,6 +5595,7 @@
         }
 
         function renderChatPage() {
+            try { markChatRead(); } catch (e) {} // 打开聊天页即视为全部已读（导航红点消失）
             const partner = getPartnerUser();
             document.getElementById('chatPartnerName').textContent = partner.nickname;
             // 戳一戳按钮显示对方的头像 emoji（跟柿子聊天就是 🍅，跟栗子就是 🌰）
@@ -5830,6 +6062,11 @@
     function renderJournalList() {
         const list = document.getElementById('journalListWrap');
         _syncJournalDatePill();
+        // 🔴 “未读”芯片上实时显示当前未读数
+        try {
+            const _unChip = document.querySelector('.journal-tag[data-tag="__unread"]');
+            if (_unChip) { const _n = getUnreadInfo().journal; _unChip.textContent = _n > 0 ? '🔴 未读 ' + _n : '🔴 未读'; }
+        } catch (e) {}
         let journals = appData.journals;
 
         // 标签筛选（"__none" = 无标签）
@@ -5856,6 +6093,12 @@
             );
         }
 
+        // 🔴 只看未读：TA 新写的手帐，或里面还有 TA 没看过的留言（含留言）
+        if (currentJournalTag === '__unread') {
+            const _unSet = _journalUnreadIds();
+            journals = journals.filter(j => _unSet.has(j.id));
+        }
+
         // 📌 置顶优先；其余按手帐日期新→旧排（同一天按创建时间新→旧）
         journals = journals.slice().sort((a, b) => {
             const pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
@@ -5871,7 +6114,9 @@
                 ? `${escapeHtml(_journalDateLabel(journalDateFilter))} 没有手帐<br>这一天也许平凡，也值得记一笔`
                 : (journalSearchQuery
                     ? `没有找到包含「${escapeHtml(journalSearchQuery)}」的手帐<br>试试其他关键词吧`
-                    : `还没有手帐<br>写下第一篇吧～`);
+                    : (currentJournalTag === '__unread'
+                        ? `没有未读的手帐和留言啦<br>圈子干干净净 🎉`
+                        : `还没有手帐<br>写下第一篇吧～`));
             list.innerHTML = `
                 <div class="empty-state -ml-5">
                     <div class="empty-state-icon">${(journalSearchQuery || journalDateFilter) ? '🔍' : '📔'}</div>
@@ -5884,6 +6129,7 @@
             const date = _journalDateLabel(_journalDateOf(j));
             const time = new Date(j.createTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
             const sameDay = _journalDateOf(j) === _memoTodayStr();
+            const _ui = _journalUnreadInfo(j); // 这篇是否未读（新手帐 / TA 的新留言）
             return `
                 <div class="relative pl-2 cursor-pointer stagger-item" style="animation-delay: ${idx * 0.08}s;" onclick="viewJournalDetail('${j.id}')">
                     <div class="timeline-dot"></div>
@@ -5891,6 +6137,7 @@
                         <div class="flex items-start justify-between mb-3 gap-3">
                             <h4 class="font-semibold text-[#5E3A20] text-base leading-snug flex-1">${j.pinned ? '📌 ' : ''}${escapeHtml(j.title)}</h4>
                             <span class="text-[11px] px-2.5 py-1 rounded-full bg-gradient-to-r from-[#FFF4E5] to-[#FFE8CC] text-[#A66D3A] font-medium border border-[#F5DEC2] flex-shrink-0">${j.tag ? escapeHtml(j.tag) : '🏷️ 无标签'}</span>
+                            ${_ui.un ? `<span class="unread-new-chip">${_ui.cmt > 0 ? '💬 ' + _ui.cmt + ' 条新留言' : '新内容'}</span>` : ''}
                         </div>
                         <p class="text-sm text-[#85532E] line-clamp-3 mb-3 leading-relaxed">${escapeHtml(j.content)}</p>
                         <div class="flex items-center justify-between">
@@ -5907,6 +6154,7 @@
                             <div class="mt-3 pt-3 border-t border-[#F5DEC2]/60 flex items-center gap-1.5 text-[11px] text-[#A66D3A] font-medium">
                                 <span>💬</span>
                                 <span>${j.comments.length} 条留言</span>
+                                ${_ui.cmt > 0 ? `<span class="text-[#EF5533] font-semibold">· ${_ui.cmt} 条新留言</span>` : ''}
                             </div>
                         ` : ''}
                     </div>
@@ -5919,6 +6167,7 @@
     function viewJournalDetail(id) {
         const journal = appData.journals.find(j => j.id === id);
         if (!journal) return;
+        try { markJournalRead(id); } catch (e) {} // 看过即已读：这篇的新手帐/新留言红点消失
         
         currentViewJournalId = id;
         document.getElementById('detailJournalTitle').textContent = journal.title;
@@ -6032,6 +6281,7 @@
         saveData();
         input.value = '';
         renderJournalComments(journal.comments);
+        try { markJournalRead(currentViewJournalId); } catch (e) {} // 留言时把这篇里的未读一并清掉
         addActivity('在手帐里留了言');
         showToast('留言成功');
     }
@@ -6481,6 +6731,7 @@
             };
             if (repeat === 'year' && lunarRef) entry.lunar = lunarRef;
             appData.countdowns.push(entry);
+            _markOwnSeenId('cdSeen', entry.id); // 自己加的不算未读
             saveData();
             addActivity('添加了一个纪念日');
             showToast('保存成功');
@@ -6649,6 +6900,10 @@
             } catch (e) { chatIcon.textContent = '🍅'; }
         }
 
+        // 🔴 未读筛选开关：只显示本次进页后 TA 新加的日期
+        let cdUnreadFilterOn = false;
+        function toggleCdUnreadFilter() { cdUnreadFilterOn = !cdUnreadFilterOn; renderCountdownList(); }
+
         function renderCountdownList() {
             renderNextMeeting();
             const positiveList = document.getElementById('positiveDaysList');
@@ -6668,8 +6923,31 @@
             showToast('有倒数日到期，已自动转为正数日 💕');
         }
 
-        const positives = appData.countdowns.filter(c => c.type === 'positive');
-        const countdowns = appData.countdowns.filter(c => c.type === 'countdown');
+        // —— 未读：进页即把还没见过的日期记为已见；本次停留期间它们带 NEW 角标，可一键筛选 ——
+        const _visit = _ensureVisitSet('cd');
+        const _mks = _myReadMarks();
+        let _cdMarked = false;
+        (appData.countdowns || []).forEach(function (c) {
+            if (!c || !c.id) return;
+            if (!_mks.cdSeen[c.id]) { _mks.cdSeen[c.id] = Date.now(); _visit.add(c.id); _cdMarked = true; }
+        });
+        if (_cdMarked) { _pruneReadMarks(); saveData(); updateUnreadBadges(); }
+
+        // 🔴 只看未读筛选芯片
+        const _chipRow = document.getElementById('cdUnreadChipRow');
+        if (_chipRow) {
+            const n = _visit.size;
+            _chipRow.innerHTML = (n > 0 || cdUnreadFilterOn)
+                ? '<button onclick="toggleCdUnreadFilter()" class="px-4 py-2 rounded-full text-sm font-medium border transition-all ' + (cdUnreadFilterOn ? 'bg-[#EF5533] border-[#EF5533] text-white shadow-md' : 'bg-white text-[#A66D3A] border-[#F5DEC2]') + '">🔴 只看未读' + (n > 0 ? ' · ' + n : '') + '</button>'
+                : '';
+        }
+
+        let positives = appData.countdowns.filter(c => c.type === 'positive');
+        let countdowns = appData.countdowns.filter(c => c.type === 'countdown');
+        if (cdUnreadFilterOn) {
+            positives = positives.filter(c => _visit.has(c.id));
+            countdowns = countdowns.filter(c => _visit.has(c.id));
+        }
 
         // 正数日（置顶的排最前，其余按日期从早到晚）
         positives.sort((a, b) => ((b.isTop ? 1 : 0) - (a.isTop ? 1 : 0)) || String(a.date).localeCompare(String(b.date)));
@@ -6677,7 +6955,7 @@
             positiveList.innerHTML = `
                 <div class="card p-6 text-center">
                     <div class="text-4xl mb-2 opacity-50">💕</div>
-                    <div class="text-xs text-[#D9C4A8]">还没有正数日，去添加一个吧～</div>
+                    <div class="text-xs text-[#D9C4A8]">${cdUnreadFilterOn ? '没有未读的日期 🎉' : '还没有正数日，去添加一个吧～'}</div>
                 </div>`;
         } else {
             positiveList.innerHTML = positives.map((c, idx) => {
@@ -6686,7 +6964,7 @@
                     <div class="card px-4 py-3 stagger-item bg-gradient-to-r from-[#FFFBF5] to-white cursor-pointer" style="animation-delay: ${idx * 0.08}s;" onclick="toggleCdActions(this)">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0 flex-1">
-                                <p class="text-sm font-semibold text-[#5E3A20] break-all leading-snug">${c.isTop ? '📌 ' : ''}${escapeHtml(c.name)}</p>
+                                <p class="text-sm font-semibold text-[#5E3A20] break-all leading-snug">${c.isTop ? '📌 ' : ''}${escapeHtml(c.name)}${_visit.has(c.id) ? ' <span class="unread-new-chip">NEW</span>' : ''}</p>
                                 <p class="text-xs text-[#B08968] mt-0.5 flex items-center gap-1 flex-wrap">
                                     <span>📅</span> ${c.date}
                                 </p>
@@ -6710,7 +6988,7 @@
             countdownList.innerHTML = `
                 <div class="card p-6 text-center">
                     <div class="text-4xl mb-2 opacity-50">⏳</div>
-                    <div class="text-xs text-[#D9C4A8]">还没有倒数日，去添加一个吧～</div>
+                    <div class="text-xs text-[#D9C4A8]">${cdUnreadFilterOn ? '没有未读的日期 🎉' : '还没有倒数日，去添加一个吧～'}</div>
                 </div>`;
         } else {
             countdownList.innerHTML = countdowns.map((c, idx) => {
@@ -6722,7 +7000,7 @@
                     <div class="card px-4 py-3 stagger-item ${isUrgent ? 'bg-gradient-to-r from-amber-50 to-[#FFFBF5] border-amber-200' : 'bg-gradient-to-r from-[#FFFBF5] to-white'} cursor-pointer" style="animation-delay: ${idx * 0.08}s;" onclick="toggleCdActions(this)">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0 flex-1">
-                                <p class="text-sm font-semibold text-[#5E3A20] break-all leading-snug">${c.isTop ? '📌 ' : ''}${escapeHtml(c.name)}</p>
+                                <p class="text-sm font-semibold text-[#5E3A20] break-all leading-snug">${c.isTop ? '📌 ' : ''}${escapeHtml(c.name)}${_visit.has(c.id) ? ' <span class="unread-new-chip">NEW</span>' : ''}</p>
                                 <p class="text-xs text-[#B08968] mt-0.5 flex items-center gap-1 flex-wrap">
                                     <span>📅</span> ${effDate}${repeatLabel ? ` <span class="px-1.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] text-amber-700 font-medium">${repeatLabel}</span>` : ''}
                                 </p>
@@ -6901,7 +7179,7 @@
             ? Array.from(itemsWrap.querySelectorAll('input')).map(inp => (inp.value || '').trim()).filter(Boolean)
             : [];
         const now = Date.now();
-        appData.memoLists.push({
+        const _nl = {
             id: 'memolist_' + now,
             name: name || autoName,
             icon: selectedMemoIcon,
@@ -6910,7 +7188,10 @@
             items: lines.map((content, i) => ({ id: 'item_' + now + '_' + i, content: content, completed: false, createTime: now + i, updatedAt: now })),
             createTime: now,
             updatedAt: now
-        });
+        };
+        appData.memoLists.push(_nl);
+        _markOwnSeenId('memoSeen', _nl.id); // 自己新建的不算未读
+        _nl.items.forEach(it => _markOwnSeenId('memoSeen', it.id));
         saveData();
         addActivity('创建了 ' + _memoDateLabel(date, true) + ' 的清单');
         showToast('小票开好了 🧾');
@@ -6993,6 +7274,7 @@
     function _memoChipsHtml() {
         const chips = [
             { key: 'all', label: '全部' },
+            { key: '__unread', label: (function () { const _n = _ensureVisitSet('memo').size; return _n > 0 ? '🔴 未读 · ' + _n : '🔴 未读'; })() },
             { key: 'today', label: '🗓 今天' },
             { key: 'undone', label: '⏳ 未完成' },
             { key: 'quick', label: '📌 随手记' },
@@ -7014,6 +7296,11 @@
     // 搜索 + 筛选是否命中（filteredItems 已按关键词过滤）
     function _memoListHit(list, q) {
         if (memoFilter === 'date') return !!list.date && list.date === memoFilterDate;
+        if (memoFilter === '__unread') {
+            // 🔴 只看未读：本次进页后新出现的清单或条目（含 TA 加的待办）
+            const _v = _ensureVisitSet('memo');
+            if (!_v.has(list.id) && !(list.items || []).some(i => i && _v.has(i.id))) return false;
+        }
         if (memoFilter === 'quick') return list.id === 'default';
         if (memoFilter === 'today' && list.date !== _memoTodayStr()) return false;
         if (memoFilter === 'undone' && (list.items || []).every(i => i.completed)) return false;
@@ -7041,6 +7328,7 @@
     // —— 渲染一张订单小票 ——
     function _memoOrderCardHtml(list, seq, isQuick) {
         const q = (memoSearchQuery || '').toLowerCase().trim();
+        const _v = _ensureVisitSet('memo'); // 未读：本次进页后新出现的清单/条目
         const items = list._items || [];
         const allItems = list.items || [];
         const total = allItems.length;
@@ -7058,6 +7346,7 @@
             : items.map((it, idx) => `
                 <div class="memo-item-row group">
                     <span class="memo-idx">${String(idx + 1).padStart(2, '0')}</span>
+                    ${_v.has(it.id) ? '<span class="unread-new-dot" title="未读"></span>' : ''}
                     <input type="checkbox" class="todo-checkbox flex-shrink-0"
                         ${it.completed ? 'checked' : ''}
                         onchange="toggleMemoItem('${list.id}', '${it.id}')">
@@ -7071,7 +7360,7 @@
                     <div class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer" onclick="openMemoListEditor('${list.id}')" title="点击编辑清单信息">
                         <div class="w-10 h-10 rounded-xl bg-[#FFF4E5] border border-[#F5DEC2] flex items-center justify-center text-xl flex-shrink-0">${list.icon || '🧾'}</div>
                         <div class="min-w-0">
-                            <h4 class="font-bold text-[#5E3A20] text-[15px] truncate leading-tight">${escapeHtml(list.name)}</h4>
+                            <h4 class="font-bold text-[#5E3A20] text-[15px] truncate leading-tight">${escapeHtml(list.name)}${_v.has(list.id) ? ' <span class="unread-new-chip">NEW</span>' : ''}</h4>
                             <p class="text-[11px] text-[#B08968] mt-0.5 truncate">${dateLabel}</p>
                         </div>
                     </div>
@@ -7112,12 +7401,23 @@
     function renderMemoLists() {
         const wrap = document.getElementById('memoListsWrap');
         if (!wrap) return;
-        const chipsRow = document.getElementById('memoChipsRow');
-        if (chipsRow) chipsRow.innerHTML = _memoChipsHtml();
-
         const q = (memoSearchQuery || '').toLowerCase().trim();
         const lists = Array.isArray(appData.memoLists) ? appData.memoLists : [];
         _memoEnsureDefaultList();
+
+        // —— 未读：进页即把还没见过的清单/条目记为已见；本次停留期间它们带红点，可一键筛选 ——
+        const _visit = _ensureVisitSet('memo');
+        const _mks = _myReadMarks();
+        let _memoMarked = false;
+        lists.forEach(l => {
+            if (!l || !l.id) return;
+            if (!_mks.memoSeen[l.id]) { _mks.memoSeen[l.id] = Date.now(); _visit.add(l.id); _memoMarked = true; }
+            (l.items || []).forEach(it => { if (it && it.id && !_mks.memoSeen[it.id]) { _mks.memoSeen[it.id] = Date.now(); _visit.add(it.id); _memoMarked = true; } });
+        });
+        if (_memoMarked) { _pruneReadMarks(); saveData(); updateUnreadBadges(); }
+
+        const chipsRow = document.getElementById('memoChipsRow');
+        if (chipsRow) chipsRow.innerHTML = _memoChipsHtml();
 
         // 过滤：条目按关键词筛，清单按筛选芯片 + 命中判断
         let filtered = lists.map(list => {
@@ -7130,7 +7430,7 @@
             wrap.innerHTML = `
                 <div class="card p-8 text-center">
                     <div class="text-5xl mb-3 opacity-50">${q ? '🔍' : '🧾'}</div>
-                    <div class="text-sm text-[#D9C4A8]">${q ? '没有找到包含「' + escapeHtml(memoSearchQuery) + '」的备忘' : '还没有清单，点右上角「+ 新建清单」开一张当天的小票吧'}</div>
+                    <div class="text-sm text-[#D9C4A8]">${q ? '没有找到包含「' + escapeHtml(memoSearchQuery) + '」的备忘' : (memoFilter === '__unread' ? '没有未读的备忘 🎉' : '还没有清单，点右上角「+ 新建清单」开一张当天的小票吧')}</div>
                 </div>`;
             return;
         }
@@ -7201,12 +7501,9 @@
         const content = (input.value || '').trim();
         if (!content) return;
         const d = _memoEnsureDefaultList();
-        d.items.unshift({
-            id: 'item_' + Date.now(),
-            content: content,
-            completed: false,
-            createTime: Date.now()
-        });
+        const _it = { id: 'item_' + Date.now(), content: content, completed: false, createTime: Date.now() };
+        d.items.unshift(_it);
+        _markOwnSeenId('memoSeen', _it.id); // 自己加的不算未读
         input.value = '';
         saveData();
         renderMemoLists();
@@ -7224,12 +7521,9 @@
         if (!content) return;
         const list = appData.memoLists.find(l => l.id === listId);
         if (!list) return;
-        list.items.push({
-            id: 'item_' + Date.now(),
-            content: content,
-            completed: false,
-            createTime: Date.now()
-        });
+        const _it2 = { id: 'item_' + Date.now(), content: content, completed: false, createTime: Date.now() };
+        list.items.push(_it2);
+        _markOwnSeenId('memoSeen', _it2.id); // 自己加的不算未读
         saveData();
         renderMemoLists();
         const again = document.querySelector('[data-addfor="' + listId + '"]');
@@ -8269,6 +8563,10 @@
     function PC(x, y, rx, h, c, z0) { return { t: 'C', x: x, y: y, rx: rx, h: h, c: c, z0: z0 || 0 }; }
     // —— 家具定义（68 件）：多零件组合具象造型；lamp=会发光 tv=屏幕可开关 '@screen'=屏色随开关 ——
     const FURN_DEF = {
+        // 窗户组件（3.4）：winType = std/tall/small；渲染与交互走窗户专用逻辑，不入 items[]
+        winStd: { name: '标准窗', winType: 'std', parts: [] },
+        winTall: { name: '落地飘窗', winType: 'tall', parts: [] },
+        winSmall: { name: '小屋窗', winType: 'small', parts: [] },
         // 卧室
         bed2: { name: '双人床', parts: [PB(0, 0.26, 1.44, 0.5, 9, C.cream), PB(0, -0.16, 1.44, 0.94, 20, C.white), PB(0, 0.06, 1.4, 0.5, 27, C.pink), PB(0, -0.14, 1.4, 0.14, 28, C.pinkL), PB(-0.34, -0.4, 0.38, 0.2, 29, C.pinkL), PB(0.34, -0.4, 0.38, 0.2, 29, C.pinkL), PB(0, 0.55, 1.5, 0.12, 24, C.pinkD), PB(0, -0.55, 1.5, 0.14, 40, C.pinkD)] },
         bed1: { name: '单人床', parts: [PB(0, 0.2, 1.02, 0.44, 8, C.cream), PB(0, -0.12, 1.02, 0.82, 18, C.white), PB(0, 0.05, 0.98, 0.46, 24, C.blue), PB(0, -0.12, 0.98, 0.12, 25, C.blueL), PB(0, -0.34, 0.32, 0.18, 26, C.blueL), PB(0, 0.44, 1.06, 0.1, 20, C.blueD), PB(0, -0.46, 1.06, 0.12, 32, C.blueD)] },
@@ -8402,7 +8700,7 @@
         { cat: 'bath', label: '🛁 卫浴', keys: ['bathtub', 'sink', 'toilet', 'shower', 'bcab', 'shelf2', 'mat2', 'towel', 'duck', 'aroma'] },
         { cat: 'plant', label: '🪴 绿植', keys: ['plantL', 'plantS', 'vine', 'palm', 'grassp', 'flowerbed', 'cactus', 'vase', 'lily', 'sapling', 'sunflower', 'tulips', 'bonsai'] },
         { cat: 'floor', label: '🧶 地面铺装', keys: ['rug1', 'rug2', 'rug3', 'floorWood', 'floorTile', 'floorChecker', 'floorRose', 'floorDeck'] },
-        { cat: 'wall', label: '🖼 墙饰', keys: ['wpic', 'wpic2', 'wclock', 'wreath', 'garland', 'wshelf', 'wmirror'] },
+        { cat: 'wall', label: '🖼 墙饰', keys: ['wpic', 'wpic2', 'wclock', 'wreath', 'garland', 'wshelf', 'wmirror', 'winStd', 'winTall', 'winSmall'] },
         { cat: 'deco', label: '🎀 装饰', keys: ['easel', 'starlamp', 'candles', 'musicbox', 'aroma2', 'stringlight', 'trophy', 'lantern', 'stairs'] },
         { cat: 'small', label: '🍬 小物件', keys: ['teaset', 'photof', 'jewelry', 'bookopen', 'bookstack', 'cat', 'goldfish', 'fan'] },
         { cat: 'game', label: '🎮 电竞', keys: ['gdesk', 'gchair', 'monitor', 'pcbox', 'gpink', 'arcade', 'keyboard', 'headset', 'ringlight', 'figurine'] },
@@ -8518,6 +8816,7 @@
         try { const s = JSON.parse(localStorage.getItem(ISO_SAVE_KEY)); if (s && s.spaces) isoState = s; } catch (e) { isoState = null; }
         if (!isoState || !isoState.spaces) isoState = { theme: 'cozy', spaces: {} };
         Object.keys(ISO_SPACES).forEach(k => { if (!isoState.spaces[k] || !Array.isArray(isoState.spaces[k].items)) isoState.spaces[k] = { items: [] }; });
+            Object.keys(ISO_SPACES).forEach(k => { if (ISO_SPACES[k] && !ISO_SPACES[k].outdoor && ISO_SPACES[k].win) _isoWinList(k); }); // 老存档补齐窗户数据（位置与旧版一致）
         if (ISO_THEMES[isoState.theme] === undefined) isoState.theme = 'cozy';
         if (isoState.theme === 'beach') isoState.theme = 'cozy'; // 一次性迁移到新风格（沙滩主题仍可手动选回）
         if (!isoState.hidden) isoState.hidden = {};
@@ -8744,32 +9043,15 @@
             for (let i = 0; i < G.cols; i++) { const c = P(i + 0.5, 0); motif(c[0], c[1] - WH * 0.56); }
             for (let j = 1; j < G.rows; j++) { const c = P(0, j); motif(c[0], c[1] - WH * 0.56); }
         })();
-// 窗：白窗框 + 主题玻璃 + 斜向高光 + 窗台；夜晚玻璃透暖光 + 光晕；win 型：tall 落地飘窗 / small 小屋圆窗 / std 标准
-        const winCfg = opts.win || 'std';
-        const winHalf = (winCfg === 'tall' ? 16 : winCfg === 'small' ? 9 : 13);
-        const winTop = (winCfg === 'tall' ? 60 : winCfg === 'small' ? 42 : 48);
-        const winBot = (winCfg === 'tall' ? 4 : 8);
-        const win = function (gx) {
-            const w = P(gx, 0);
-            const x0 = w[0] - winHalf * S, x1 = w[0] + winHalf * S, yT = w[1] - winTop * S, yB = w[1] - winBot * S;
-            push([[x0 - 3 * S, yT - 3 * S], [x1 + 3 * S, yT - 3 * S], [x1 + 3 * S, yB + 3 * S], [x0 - 3 * S, yB + 3 * S]], '#FFFFFF');
-            if (night) {
-                out.push('<circle cx="' + Math.round((x0 + x1) / 2) + '" cy="' + Math.round((yT + yB) / 2) + '" r="' + Math.round(26 * S + 8) + '" fill="rgba(255, 205, 120, 0.22)"/>');
-                out.push('<circle cx="' + Math.round((x0 + x1) / 2) + '" cy="' + Math.round((yT + yB) / 2) + '" r="' + Math.round(16 * S + 5) + '" fill="rgba(255, 214, 140, 0.3)"/>');
-            }
-            push([[x0, yT], [x1, yT], [x1, yB], [x0, yB]], night ? '#FFDFA0' : (opts.stickers ? '#FBE3F0' : '#DFF3FB'));
-            if (T) T(x0, yT, x1, yB);
-            out.push('<line x1="' + Math.round(x0 + 4 * S) + '" y1="' + Math.round(yB - 4 * S) + '" x2="' + Math.round(x0 + 13 * S) + '" y2="' + Math.round(yT + 5 * S) + '" stroke="rgba(255,255,255,0.8)" stroke-width="' + Math.max(1.5, 2.5 * S) + '" stroke-linecap="round"/>');
-            push([[x0 - 5 * S, yB + 3 * S], [x1 + 5 * S, yB + 3 * S], [x1 + 5 * S, yB + 6 * S], [x0 - 5 * S, yB + 6 * S]], _shade(theme.wallCap, night ? 0.6 : 0.95));
-        };
-        win(2.2); win(4.6); win(7.4); win(9.8);
-        // 左墙挂画（白框 + 主题芯）+ 门框
+// 窗（3.4 重绘）：等角透视平行四边形 + 窗框厚度 + 柔光玻璃；位置来自 wins 数据（强制贴墙），编辑态由 DOM 图层交互
+        (opts.wins || []).forEach(function (w) { _pushIsoWin(out, P, S, theme, night, w, opts.tk, T); });
+        // 左墙挂画（白框 + 主题芯）+ 门框（3.4：修正为跟随左墙 -0.5 斜率的等角透视）
         const a = P(0, 2.2);
-        push([[a[0] - 11 * S, a[1] - 44 * S], [a[0] + 3 * S, a[1] - 37 * S], [a[0] + 3 * S, a[1] - 12 * S], [a[0] - 11 * S, a[1] - 19 * S]], '#FFFFFF');
-        push([[a[0] - 8 * S, a[1] - 40 * S], [a[0] + 1 * S, a[1] - 35 * S], [a[0] + 1 * S, a[1] - 16 * S], [a[0] - 8 * S, a[1] - 21 * S]], opts.stickers ? '#F9C6D9' : '#FDE3EE');
+        push([[a[0] - 11 * S, a[1] + 5.5 * S - 44 * S], [a[0] + 3 * S, a[1] - 1.5 * S - 44 * S], [a[0] + 3 * S, a[1] - 1.5 * S - 19 * S], [a[0] - 11 * S, a[1] + 5.5 * S - 19 * S]], '#FFFFFF');
+        push([[a[0] - 8 * S, a[1] + 4 * S - 40 * S], [a[0], a[1] - 40 * S], [a[0], a[1] - 22 * S], [a[0] - 8 * S, a[1] + 4 * S - 22 * S]], opts.stickers ? '#F9C6D9' : '#FDE3EE');
         const d = P(0, 4.6);
-        if (T) T(d[0] - 14 * S, d[1] - 58 * S, d[0] + 8 * S, d[1] + 2 * S);
-        out.push('<polygon points="' + Math.round(d[0] - 9 * S) + ',' + Math.round(d[1] - 54 * S) + ' ' + Math.round(d[0] + 5 * S) + ',' + Math.round(d[1] - 47 * S) + ' ' + Math.round(d[0] + 5 * S) + ',' + Math.round(d[1] - 6 * S) + ' ' + Math.round(d[0] - 9 * S) + ',' + Math.round(d[1] - 13 * S) + '" fill="none" stroke="' + _shade(theme.wall, night ? 0.45 : 0.7) + '" stroke-width="' + Math.max(2, 3 * S) + '" stroke-linejoin="round"/>');
+        if (T) T(d[0] - 14 * S, d[1] - 56 * S, d[0] + 8 * S, d[1] + 2 * S);
+        out.push('<polygon points="' + Math.round(d[0] - 9 * S) + ',' + Math.round(d[1] - 45 * S) + ' ' + Math.round(d[0] + 5 * S) + ',' + Math.round(d[1] - 52 * S) + ' ' + Math.round(d[0] + 5 * S) + ',' + Math.round(d[1] - 11 * S) + ' ' + Math.round(d[0] - 9 * S) + ',' + Math.round(d[1] - 4 * S) + '" fill="none" stroke="' + _shade(theme.wall, night ? 0.45 : 0.7) + '" stroke-width="' + Math.max(2, 3 * S) + '" stroke-linejoin="round"/>');
         // 壁灯（金色光晕；夜晚更亮更大）
         if (opts.lamp !== false) {
             const lp = P(3.4, 0), ly = lp[1] - WH * 0.55;
@@ -8784,6 +9066,61 @@
             out.push('<text x="' + Math.round(s1[0]) + '" y="' + Math.round(s1[1] - 32 * S) + '" font-size="' + Math.round(9 * S + 5) + '" text-anchor="middle">⭐</text>');
             out.push('<text x="' + Math.round(s2[0]) + '" y="' + Math.round(s2[1] - 28 * S) + '" font-size="' + Math.round(9 * S + 5) + '" text-anchor="middle">💗</text>');
         }
+    }
+
+    // ==================== 3.4 等角窗户组件：透视平行四边形 + 窗框厚度 + 柔光玻璃（总览/编辑共用） ====================
+    let _winUid = 0;
+    function _isoWinCfg(t) { return t === 'tall' ? { half: 16, top: 60, bot: 4 } : (t === 'small' ? { half: 9, top: 42, bot: 8 } : { half: 13, top: 48, bot: 8 }); }
+    function _isoWinGlass(tk, night) {
+        if (night) return '#FFDFA0';
+        return ({ cozy: '#DFF3FB', beach: '#D6F2EF', apart: '#FDF3DF', cyber: '#FBE3F0' })[tk] || '#DFF3FB';
+    }
+    // wall: 'right'（后右墙 gy=0，屏幕斜率 +0.5）| 'left'（后左墙 gx=0，斜率 -0.5）；gx = 沿墙坐标；锚点 = 窗底中心在墙面上的点
+    function _pushIsoWin(out, P, S, theme, night, w, tk, T) {
+        const cfg = _isoWinCfg(w.t);
+        const left = w.wall === 'left';
+        const m = left ? -0.5 : 0.5;
+        const A = left ? P(0, w.gx) : P(w.gx, 0);
+        const pt = function (dx, up) { return [A[0] + dx * S, A[1] + m * dx * S - up * S]; };
+        const off = function (pts, ox, oy) { return pts.map(function (p) { return [p[0] + ox, p[1] + oy]; }); };
+        const poly = function (pts, fill, op, sw) {
+            if (T) pts.forEach(function (p) { T(p[0], p[1], p[0], p[1]); });
+            out.push('<polygon points="' + pts.map(function (p) { return Math.round(p[0]) + ',' + Math.round(p[1]); }).join(' ') + '" fill="' + fill + '"' + (op ? ' opacity="' + op + '"' : '') + (sw ? ' stroke="' + fill + '" stroke-width="' + sw + '" stroke-linejoin="round"' : '') + '/>');
+        };
+        const H = cfg.half, yT = cfg.top, yB = Math.max(2, cfg.bot);
+        const fr = 4.5, dep = 2.6;
+        const nx = (left ? 1 : -1) * dep * 0.89, ny = dep * 0.45; // 朝房间方向（屏幕系）的厚度偏移
+        const cx = A[0], cy = A[1] - (yT + yB) / 2 * S;
+        // 夜晚：窗外暖光光晕（画在最底层）
+        if (night) {
+            out.push('<circle cx="' + Math.round(cx) + '" cy="' + Math.round(cy) + '" r="' + Math.round(26 * S + 8) + '" fill="rgba(255, 205, 120, 0.22)"/>');
+            out.push('<circle cx="' + Math.round(cx) + '" cy="' + Math.round(cy) + '" r="' + Math.round(16 * S + 5) + '" fill="rgba(255, 214, 140, 0.3)"/>');
+            if (T) T(cx - 42 * S, cy - 42 * S, cx + 42 * S, cy + 42 * S);
+        }
+        // 外凸窗台：先画厚度暗边，再画顶面
+        const sillPts = [pt(-H - fr - 3, yB - fr + 1), pt(H + fr + 3, yB - fr + 1), pt(H + fr + 3, yB - fr - 2.5), pt(-H - fr - 3, yB - fr - 2.5)];
+        poly(off(sillPts, nx * 1.6, ny * 1.6), _shade(theme.wallCap, night ? 0.48 : 0.75));
+        poly(sillPts, _shade(theme.wallCap, night ? 0.62 : 0.98));
+        // 窗框厚度（朝房间探出的一圈侧壁）+ 白色圆润窗框
+        const framePts = [pt(-H - fr, yT + fr), pt(H + fr, yT + fr), pt(H + fr, yB - fr), pt(-H - fr, yB - fr)];
+        poly(off(framePts, nx, ny), _shade(theme.wallCap, night ? 0.55 : 0.8));
+        poly(framePts, '#FFFFFF', null, Math.max(1.5, 2.2 * S));
+        // 玻璃：主题柔光色 + 顶部高光渐变（半透明，避免纯白死板色块）
+        const uid = 'wgl' + (++_winUid);
+        const glass = _isoWinGlass(tk, night);
+        out.push('<defs><linearGradient id="' + uid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.55)"/><stop offset="45%" stop-color="rgba(255,255,255,0.08)"/><stop offset="100%" stop-color="rgba(94,58,32,0.10)"/></linearGradient></defs>');
+        poly([pt(-H, yT), pt(H, yT), pt(H, yB), pt(-H, yB)], glass, night ? 0.94 : 0.86);
+        poly([pt(-H, yT), pt(H, yT), pt(H, yB), pt(-H, yB)], 'url(#' + uid + ')');
+        // 顶部内侧暗部（进深）+ 底部内侧反光（柔光）
+        poly([pt(-H, yT), pt(H, yT), pt(H, yT - 5), pt(-H, yT - 5)], 'rgba(94, 58, 32, 0.15)');
+        poly([pt(-H, yB + 1), pt(H, yB + 1), pt(H, yB + 3.5), pt(-H, yB + 3.5)], 'rgba(255, 255, 255, 0.5)');
+        // 斜向高光
+        const hl1 = pt(-H + 4, yB + 4), hl2 = pt(-H + 13, yT - 4);
+        out.push('<line x1="' + Math.round(hl1[0]) + '" y1="' + Math.round(hl1[1]) + '" x2="' + Math.round(hl2[0]) + '" y2="' + Math.round(hl2[1]) + '" stroke="rgba(255,255,255,0.8)" stroke-width="' + Math.max(1.5, 2.5 * S) + '" stroke-linecap="round"/>');
+        // 中梃：竖梃 + 横梃（小屋窗只留竖梃）
+        poly([pt(-1, yT), pt(1, yT), pt(1, yB), pt(-1, yB)], '#FFFFFF');
+        if (w.t !== 'small') poly([pt(-H, (yT + yB) / 2 + 1), pt(H, (yT + yB) / 2 + 1), pt(H, (yT + yB) / 2 - 1), pt(-H, (yT + yB) / 2 - 1)], '#FFFFFF');
+        if (T) T(A[0] - (H + fr + 8) * S, A[1] - (yT + fr + 10) * S, A[0] + (H + fr + 8) * S, A[1] + 4 * S);
     }
 
     // —— 地面系统（共用）：深浅交错木板 + 拼缝、瓷砖砖缝明暗、地毯绒面；night 时整体压暗 ——
@@ -9077,7 +9414,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             const theme = ISO_THEMES[_spaceThemeFor(p.key, themeKey)] || groundTheme;
             const PP = function (gx, gy) { return P(p.ox, p.oy, gx, gy); };
             if (p.idx > 0) _pushIsoSlab(out, track, P, S, p.ox, p.oy, theme, G, night, 16, true, false);
-            _pushWalls(out, track, PP, S, theme, G, { stickers: p.key === 'gaming', night: night, win: sp.win });
+            _pushWalls(out, track, PP, S, theme, G, { stickers: p.key === 'gaming', night: night, tk: _spaceThemeFor(p.key, themeKey), wins: _isoWinList(p.key) });
             _pushFloor(out, track, PP, S, theme, sp, G, night);
             if (sp.balcony && p.idx === 0) _pushBalcony(out, PP, S, theme, G, night);
             if (p.idx === 0) _pushPlatformSides(out, PP, S, theme, G, night, 14);
@@ -9180,6 +9517,8 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
     function _showIsoHouse() {
         isoEditOpen = false;
         stopIsoPals();
+        const pg = document.getElementById('gameRoomPage');
+        if (pg) pg.classList.remove('iso-editing', 'iso-focus'); // 恢复常规滚动与安全区布局
         document.getElementById('isoHouseView').classList.remove('hidden');
         document.getElementById('isoEditView').classList.add('hidden');
         _renderIsoFloorToggles();
@@ -9238,6 +9577,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         isoSpaceKey = key;
         isoSelId = null;
         heldClear();
+        document.getElementById('gameRoomPage').classList.add('iso-editing'); // 安全区适配：画布底边对齐底部导航栏顶缘
         document.getElementById('isoHouseView').classList.add('hidden');
         document.getElementById('isoEditView').classList.remove('hidden');
         isoLibCat = _defaultLibCatFor(key);
@@ -9245,6 +9585,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         _renderIsoThemeRow();
         _renderIsoCombos();
         _renderIsoLib();
+        _setIsoLibOpen(true); // 进编辑器自动展开底部抽屉（默认展开约半屏，顶部保留画布可视）
         _updateIsoNightBtns();
         _renderIsoSpace(false);
         _fitIsoView();
@@ -9253,22 +9594,14 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
     function closeIsoEdit() { _showIsoHouse(); }
     function setIsoSpace(key) { if (isoSpaceKey === key) return; isoSpaceKey = key; isoSelId = null; heldClear(); isoLibCat = _defaultLibCatFor(key); _renderIsoTabs(); _renderIsoLib(); _renderIsoSpace(true); _updateIsoItemBar(); }
     function setIsoTheme(key) { isoState.theme = key; _isoSave(); _renderIsoThemeRow(); _buildIsoWorld(); _renderIsoLib(); if (!isoEditOpen) _renderIsoHouse(); }
-    function toggleIsoLib() {
+    function _setIsoLibOpen(open) {
+        isoLibOpen = !!open;
         const lib = document.getElementById('isoLib');
-        const mobile = window.matchMedia && window.matchMedia('(max-width: 639px)').matches;
-        if (mobile && lib) {
-            // 手机端：底部弹出式抽屉
-            lib.classList.toggle('sheet-open');
-            isoLibOpen = lib.classList.contains('sheet-open');
-            const body = document.getElementById('isoLibBody');
-            if (body) body.classList.remove('hidden');
-        } else {
-            isoLibOpen = !isoLibOpen;
-            document.getElementById('isoLibBody').classList.toggle('hidden', !isoLibOpen);
-        }
+        if (lib) lib.classList.toggle('lib-open', isoLibOpen);
         const ch = document.getElementById('isoLibChevron');
         if (ch) ch.textContent = isoLibOpen ? '▾' : '▸';
     }
+    function toggleIsoLib() { _setIsoLibOpen(!isoLibOpen); }
     function clearIsoSpace() {
         if (!confirm('全部回收：清空「' + ((ISO_SPACES[isoSpaceKey] || {}).name || '本房间') + '」的所有家具吗？（Ctrl+Z 可撤销）')) return;
         isoPushUndo();
@@ -9408,7 +9741,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             const gLay = _isoHouse().layout.find(function (s) { return s.floors.indexOf(isoSpaceKey) >= 0; });
             _pushFence(out, P, 1, theme, G, night, (gLay && gLay.dx > 0) ? 'left' : 'right');
         } else {
-            _pushWalls(out, null, P, 1, theme, G, { stickers: _spaceTheme(isoSpaceKey) === 'cyber', night: night, win: sp.win });
+            _pushWalls(out, null, P, 1, theme, G, { stickers: _spaceTheme(isoSpaceKey) === 'cyber', night: night, tk: _spaceTheme(isoSpaceKey), wins: null }); // 窗户改由 DOM 图层渲染（可选中/拖动）
             _pushFloor(out, null, P, 1, theme, sp, G, night);
         }
         // 网格线：吸附辅助（自由摆放模式隐藏）
@@ -9441,12 +9774,14 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         }
         // 光影罩层（盖在最上层，不挡交互）
         out.push(_lightSvgRects(null, 0, 0, parseInt(world.style.width), parseInt(world.style.height)));
+        world.setAttribute('data-theme', _spaceTheme(isoSpaceKey)); // 选中态主题色高亮（CSS 按主题取色）
         world.innerHTML = '<svg id="isoShellSvg" width="' + world.style.width + '" height="' + (world.style.height) + '" style="display:block">' + out.join('') + '</svg>';
         const vpEl = document.getElementById('isoViewport');
         if (vpEl) {
             // 画布全天保持明亮（App 深色模式也不压暗小屋）；底色随光影微调
             vpEl.style.background = _lightBgCss();
         }
+        _renderIsoWinEls();
         _renderIsoItems();
         _applyIsoTransform();
         if (isoPalsOn()) startIsoPals(); else stopIsoPals();
@@ -9480,6 +9815,20 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
     function _updateIsoItemBar() {
         const bar = document.getElementById('isoItemBar');
         if (!bar) return;
+        const winSel = isoSelId ? _isoWinList(isoSpaceKey).find(x => x.id === isoSelId) : null;
+        const smBtn = document.getElementById('isoItemSmaller'), bgBtn = document.getElementById('isoItemBigger');
+        if (winSel) {
+            document.getElementById('isoItemSelected').textContent = '窗户 · ' + (winSel.wall === 'right' ? '右墙' : '左墙');
+            const tgW = document.getElementById('isoItemToggle');
+            if (tgW) tgW.classList.add('hidden');
+            if (smBtn) smBtn.classList.add('hidden');
+            if (bgBtn) bgBtn.classList.add('hidden');
+            bar.classList.remove('hidden');
+            bar.classList.add('flex');
+            return;
+        }
+        if (smBtn) smBtn.classList.remove('hidden');
+        if (bgBtn) bgBtn.classList.remove('hidden');
         const item = isoSelId ? isoState.spaces[isoSpaceKey].items.find(i => i.id === isoSelId) : null;
         if (item) {
             const def = FURN_DEF[item.k] || {};
@@ -9501,7 +9850,9 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         const cat = FURN_LIB.find(c => c.cat === isoLibCat);
         const libTk = _spaceTheme(isoSpaceKey);
         document.getElementById('isoLibItems').innerHTML = cat.keys.map(function (k) {
-            return '<button class="iso-pal" title="' + FURN_DEF[k].name + '" onpointerdown="isoLibDragStart(event, \'' + k + '\')">' + _furnSVGHTML(k, 0.62, undefined, undefined, libTk) + '</button>';
+            const d2 = FURN_DEF[k] || {};
+            const svg2 = d2.winType ? _isoWinSVGHTML({ wall: 'right', gx: 0, t: d2.winType }, libTk, false, 0.5) : _furnSVGHTML(k, 0.62, undefined, undefined, libTk);
+            return '<button class="iso-pal" title="' + d2.name + '" onpointerdown="isoLibDragStart(event, \'' + k + '\')">' + svg2 + '</button>';
         }).join('');
     }
     function setIsoLibCat(cat) { isoLibCat = cat; _renderIsoLib(); }
@@ -9521,7 +9872,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         isoHeld = { k: k };
         const ghost = document.createElement('div');
         ghost.className = 'furn-ghost';
-        ghost.innerHTML = _furnSVGHTML(k, 0.9, undefined, undefined, _spaceTheme(isoSpaceKey));
+        ghost.innerHTML = def.winType ? _isoWinSVGHTML({ wall: 'right', gx: 0, t: def.winType }, _spaceTheme(isoSpaceKey), false, 0.8) : _furnSVGHTML(k, 0.9, undefined, undefined, _spaceTheme(isoSpaceKey));
         ghost.style.left = ev.clientX - 20 + 'px';
         ghost.style.top = ev.clientY - 40 + 'px';
         document.body.appendChild(ghost);
@@ -9571,6 +9922,8 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             showToast('已拿起「' + (FURN_DEF[drag.k] ? FURN_DEF[drag.k].name : drag.k) + '」，点击房间里的格子放置');
             return;
         }
+        const defNew0 = FURN_DEF[drag.k] || {};
+        if (defNew0.winType) { _isoWinAddFromDrop(drag.cell, defNew0.winType); return; } // 窗户：装到墙上（强制贴墙）
         isoPushUndo();
         const rawCell = { gx: (drag.cell.fx !== undefined ? drag.cell.fx : drag.cell.gx), gy: (drag.cell.fy !== undefined ? drag.cell.fy : drag.cell.gy) };
         const snapped = _snapDrop(rawCell, drag.k, 0);
@@ -9647,9 +10000,176 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         _updateIsoItemBar();
         showToast('🗑 家具已收起（Ctrl+Z 可撤销）');
     }
-    function isoRemoveSelected() { if (isoSelId) isoRemoveById(isoSelId); }
+    function isoRemoveSelected() {
+        if (isoSelId && _isoWinList(isoSpaceKey).some(x => x.id === isoSelId)) { isoRemoveWinById(isoSelId); return; }
+        if (isoSelId) isoRemoveById(isoSelId);
+    }
+    // —— 3.4 窗户：编辑态数据与交互（强制贴墙 + 0.2 网格吸附 + 二阶选中制） ——
+    function isoRemoveWinById(id) {
+        isoPushUndo();
+        isoState.spaces[isoSpaceKey].wins = _isoWinList(isoSpaceKey).filter(x => x.id !== id);
+        if (isoSelId === id) isoSelId = null;
+        _isoSave();
+        _renderIsoWinEls();
+        _updateIsoItemBar();
+        showToast('🪟 窗户已拆除（Ctrl+Z 可撤销，可在家具库「墙饰」重新添加）');
+    }
+    function _isoWinDefaults(key) {
+        const sp = ISO_SPACES[key];
+        return (sp && !sp.outdoor && sp.win) ? [2.2, 4.6, 7.4, 9.8].map(function (gx) { return { wall: 'right', gx: gx, t: sp.win }; }) : [];
+    }
+    // 老存档无 wins 数据 → 按原默认位置生成（位置与旧版完全一致，数据完全兼容）
+    function _isoWinList(key) {
+        const sp = ISO_SPACES[key];
+        if (!sp || sp.outdoor || !sp.win) return [];
+        const st = (isoState && isoState.spaces) ? isoState.spaces[key] : null;
+        if (st && !Array.isArray(st.wins)) {
+            st.wins = _isoWinDefaults(key).map(function (w) { return { id: 'wn_' + key + '_' + Math.round(w.gx * 10) + '_' + Math.floor(Math.random() * 100000), wall: w.wall, gx: w.gx, t: w.t }; });
+        }
+        return (st && st.wins) || _isoWinDefaults(key);
+    }
+    function _isoWinSnapPos(g, wall) {
+        let v = wall === 'left' ? g.gy : g.gx;
+        v = Math.round(v * 5) / 5; // 0.2 网格步进
+        const lim = (wall === 'left' ? ISO_GRID.rows : ISO_GRID.cols) - 0.9;
+        v = Math.max(0.9, Math.min(lim, v));
+        if (wall === 'left' && v > 3.7 && v < 5.5) v = (v < 4.6) ? 3.7 : 5.5; // 避开左墙门框
+        return v;
+    }
+    function _isoWinGeom(w, themeKey, night) {
+        const tk = themeKey || _spaceTheme(isoSpaceKey);
+        const theme = ISO_THEMES[tk] || ISO_THEMES.cozy;
+        const out = [];
+        let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+        const T = function (x0, y0, x1, y1) { minX = Math.min(minX, x0, x1); maxX = Math.max(maxX, x0, x1); minY = Math.min(minY, y0, y1); maxY = Math.max(maxY, y0, y1); };
+        _pushIsoWin(out, function () { return [0, 0]; }, 1, theme, night, w, tk, T);
+        const gx0 = Math.floor(Math.min(minX, -30) - 6), gy0 = Math.floor(Math.min(minY, -80) - 6);
+        const bw = Math.ceil(Math.max(maxX, 26) - gx0 + 6), bh = Math.ceil(Math.max(maxY, 6) - gy0 + 6);
+        return { minX: gx0, minY: gy0, bw: bw, bh: bh };
+    }
+    function _isoWinSVGHTML(w, themeKey, night, sc, noMargin) {
+        const tk = themeKey || _spaceTheme(isoSpaceKey);
+        const g = _isoWinGeom(w, tk, night);
+        const theme = ISO_THEMES[tk] || ISO_THEMES.cozy;
+        const out = [];
+        _pushIsoWin(out, function () { return [0, 0]; }, 1, theme, night, w, tk, null);
+        const k = sc || 1;
+        const ml = noMargin ? 0 : Math.round(g.minX * k), mt = noMargin ? 0 : Math.round(g.minY * k);
+        return '<svg width="' + Math.round(g.bw * k) + '" height="' + Math.round(g.bh * k) + '" viewBox="' + g.minX + ' ' + g.minY + ' ' + g.bw + ' ' + g.bh + '" style="margin-left:' + ml + 'px;margin-top:' + mt + 'px;display:block;' + (noMargin ? '' : 'overflow:visible;') + '" class="win-svg">' + out.join('') + '</svg>';
+    }
+    function _renderIsoWinEls() {
+        const world = document.getElementById('isoWorld');
+        if (!world || _isoSpaceOX[isoSpaceKey] === undefined) return;
+        world.querySelectorAll('.iso-win-item').forEach(function (el) { el.remove(); });
+        const OX = _isoSpaceOX[isoSpaceKey], OY = _isoSpaceOY[isoSpaceKey];
+        const tk = _spaceTheme(isoSpaceKey), night = !!isoState.night;
+        _isoWinList(isoSpaceKey).forEach(function (w) {
+            const el = document.createElement('div');
+            el.className = 'iso-win-item' + (w.id === isoSelId ? ' iso-selected' : '');
+            el.dataset.id = w.id;
+            const g = _isoWinGeom(w, tk, night);
+            el.style.left = (OX + (w.wall === 'left' ? -w.gx : w.gx) * 32 + g.minX) + 'px';
+            el.style.top = (OY + w.gx * 16 + g.minY) + 'px';
+            el.style.width = g.bw + 'px';
+            el.style.height = g.bh + 'px';
+            el.style.zIndex = 2 + Math.round(w.gx);
+            el.innerHTML = _isoWinSVGHTML(w, tk, night, 1, true);
+            world.appendChild(el);
+        });
+    }
+    function _isoWinDragStart(el, ev) {
+        const w = _isoWinList(isoSpaceKey).find(x => x.id === el.dataset.id);
+        if (!w) return;
+        isoWinDrag = { id: w.id, el: el, w: w, sx: ev.clientX, sy: ev.clientY, moved: false, geom: _isoWinGeom(w, _spaceTheme(isoSpaceKey), !!isoState.night) };
+        el.classList.add('iso-dragging');
+    }
+    function _isoWinMove(ev) {
+        if (!isoWinDrag) return;
+        if (Math.abs(ev.clientX - isoWinDrag.sx) > 4 || Math.abs(ev.clientY - isoWinDrag.sy) > 4) isoWinDrag.moved = true;
+        if (!isoWinDrag.moved) return;
+        const g = _screenToGrid(ev.clientX, ev.clientY);
+        const wall = isoWinDrag.w.wall;
+        const v = _isoWinSnapPos(g, wall);
+        const gm = isoWinDrag.geom || { minX: 0, minY: 0 };
+        isoWinDrag.el.style.left = (_isoSpaceOX[isoSpaceKey] + (wall === 'left' ? -v : v) * 32 + gm.minX) + 'px';
+        isoWinDrag.el.style.top = (_isoSpaceOY[isoSpaceKey] + v * 16 + gm.minY) + 'px';
+    }
+    function _isoWinDrop(ev) {
+        if (!isoWinDrag) return;
+        const d = isoWinDrag;
+        isoWinDrag = null;
+        d.el.classList.remove('iso-dragging');
+        if (d.moved) {
+            isoPushUndo();
+            d.w.gx = _isoWinSnapPos(_screenToGrid(ev.clientX, ev.clientY), d.w.wall);
+            _isoSave();
+            _renderIsoWinEls();
+            _updateIsoItemBar();
+            showToast('🪟 窗户已贴合墙面（0.2 网格吸附）');
+        } else {
+            isoSelId = d.id;
+            _renderIsoWinEls();
+            _updateIsoItemBar();
+        }
+    }
+    function _isoWinAddFromDrop(cell, type) {
+        isoPushUndo();
+        const g = { gx: (cell.fx !== undefined ? cell.fx : cell.gx), gy: (cell.fy !== undefined ? cell.fy : cell.gy) };
+        const wall = (g.gy < g.gx) ? 'right' : 'left'; // 离哪面墙近装哪面
+        const list = _isoWinList(isoSpaceKey);
+        let v = _isoWinSnapPos(g, wall);
+        const offs = [0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6, 2, -2, 2.4, -2.4, 2.8, -2.8, 3.2, -3.2];
+        for (let i = 0; i < offs.length; i++) {
+            const cand = Math.max(0.9, Math.min((wall === 'left' ? ISO_GRID.rows : ISO_GRID.cols) - 0.9, Math.round((v + offs[i]) * 5) / 5));
+            if (!list.some(function (x) { return x.wall === wall && Math.abs(x.gx - cand) < 0.55; })) { v = cand; break; }
+        }
+        const nw = { id: 'wn_' + Date.now() + '_' + Math.floor(Math.random() * 100000), wall: wall, gx: v, t: type };
+        list.push(nw);
+        isoSelId = nw.id;
+        _isoSave();
+        _renderIsoWinEls();
+        _updateIsoItemBar();
+        showToast('🪟 窗户已装到' + (wall === 'right' ? '右' : '左') + '墙（选中后可沿墙拖动 / 🔄 换墙）');
+    }
+    function _openIsoWinCtx(x, y, id) {
+        _closeIsoCtx();
+        const w = _isoWinList(isoSpaceKey).find(v => v.id === id);
+        if (!w) return;
+        isoSelId = id;
+        _renderIsoWinEls();
+        _updateIsoItemBar();
+        const menu = document.createElement('div');
+        menu.className = 'iso-ctx-menu';
+        menu.innerHTML = '<button onclick="isoCtxAction(\'rotate\',\'' + id + '\')">🔄 换一面墙</button><button class="danger" onclick="isoCtxAction(\'remove\',\'' + id + '\')">🗑 拆除</button>';
+        document.body.appendChild(menu);
+        const mw = menu.offsetWidth, mh = menu.offsetHeight;
+        menu.style.left = Math.min(x, window.innerWidth - mw - 8) + 'px';
+        menu.style.top = Math.min(y, window.innerHeight - mh - 8) + 'px';
+        isoCtxEl = menu;
+        setTimeout(function () { document.addEventListener('pointerdown', _isoCtxOutside, true); }, 0);
+    }
     // 复制一件：在附近找空格放下（底部操作栏 / 右键菜单共用）
     function isoCopySelected() {
+        const winSrc = _isoWinList(isoSpaceKey).find(x => x.id === isoSelId);
+        if (winSrc) {
+            isoPushUndo();
+            const clone = JSON.parse(JSON.stringify(winSrc));
+            clone.id = 'wn_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+            const list2 = _isoWinList(isoSpaceKey);
+            const lim2 = (winSrc.wall === 'left' ? ISO_GRID.rows : ISO_GRID.cols) - 0.9;
+            const offs2 = [0.6, -0.6, 1, -1, 1.4, -1.4, 1.8, -1.8, 2.2, -2.2];
+            for (let i = 0; i < offs2.length; i++) {
+                const cand = Math.max(0.9, Math.min(lim2, Math.round((winSrc.gx + offs2[i]) * 5) / 5));
+                if (!list2.some(x => Math.abs(x.gx - cand) < 0.55)) { clone.gx = cand; break; }
+            }
+            list2.push(clone);
+            isoSelId = clone.id;
+            _isoSave();
+            _renderIsoWinEls();
+            _updateIsoItemBar();
+            showToast('📋 已复制一扇窗');
+            return;
+        }
         const item = isoState.spaces[isoSpaceKey].items.find(i => i.id === isoSelId);
         if (!item) { showToast('先点一件家具选中它'); return; }
         isoPushUndo();
@@ -9679,6 +10199,17 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         showToast('📏 「' + ((FURN_DEF[item.k] || {}).name || '') + '」大小 ' + Math.round(item.s * 100) + '%');
     }
     function isoRotateSelected() {
+        const winSel = _isoWinList(isoSpaceKey).find(x => x.id === isoSelId);
+        if (winSel) {
+            isoPushUndo();
+            winSel.wall = winSel.wall === 'right' ? 'left' : 'right'; // 旋转 = 换一面墙（自动贴合墙面角度）
+            winSel.gx = _isoWinSnapPos({ gx: winSel.gx, gy: winSel.gx }, winSel.wall);
+            _isoSave();
+            _renderIsoWinEls();
+            _updateIsoItemBar();
+            showToast('🪟 窗户已换到' + (winSel.wall === 'right' ? '右' : '左') + '墙');
+            return;
+        }
         const item = isoState.spaces[isoSpaceKey].items.find(i => i.id === isoSelId);
         if (!item) { showToast('先点一件家具选中它'); return; }
         isoPushUndo();
@@ -9701,6 +10232,8 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
     // 手持模式：点击房间格子直接放置（配合家具库的"拿起"）
     function _isoTapPlace(ev) {
         const g = _screenToGrid(ev.clientX, ev.clientY);
+        const defHeld = FURN_DEF[isoHeld.k] || {};
+        if (defHeld.winType) { _isoWinAddFromDrop({ gx: g.gx, gy: g.gy }, defHeld.winType); isoHeld = null; const hi0 = document.getElementById('isoHeldHi'); if (hi0) hi0.remove(); return; }
         isoPushUndo();
         const snapped = _snapDrop({ gx: g.gx, gy: g.gy }, isoHeld.k, 0);
         const defNew = FURN_DEF[isoHeld.k] || {};
@@ -9745,8 +10278,10 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             isoState.spaces = o.spaces;
             if (o.theme && ISO_THEMES[o.theme]) isoState.theme = o.theme;
             Object.keys(ISO_SPACES).forEach(k => { if (!isoState.spaces[k] || !Array.isArray(isoState.spaces[k].items)) isoState.spaces[k] = { items: [] }; });
+            Object.keys(ISO_SPACES).forEach(k => { if (ISO_SPACES[k] && !ISO_SPACES[k].outdoor && ISO_SPACES[k].win) _isoWinList(k); }); // 老存档补齐窗户数据（位置与旧版一致）
             isoSelId = null;
             _isoSave();
+            _renderIsoWinEls();
             _renderIsoItems();
             _updateIsoItemBar();
             if (!isoEditOpen) _renderIsoHouse();
@@ -9854,7 +10389,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         isoSelId = id;
         if (act === 'rotate') { isoRotateSelected(); return; }
         if (act === 'toggle') { isoToggleSelected(); return; }
-        if (act === 'remove') { isoRemoveById(id); return; }
+        if (act === 'remove') { isoRemoveSelected(); return; } // 兼容窗户（统一走 isoRemoveSelected 分支）
         if (act === 'copy') {
             isoPushUndo();
             const def = FURN_DEF[it.k] || {};
@@ -9975,7 +10510,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             const gLay = _isoHouse().layout.find(function (s) { return s.floors.indexOf(isoSpaceKey) >= 0; });
             _pushFence(out, P, 1, theme, G, night, (gLay && gLay.dx > 0) ? 'left' : 'right');
         } else {
-            _pushWalls(out, null, P, 1, theme, G, { stickers: _spaceTheme(isoSpaceKey) === 'cyber', night: night, win: sp.win });
+            _pushWalls(out, null, P, 1, theme, G, { stickers: _spaceTheme(isoSpaceKey) === 'cyber', night: night, tk: _spaceTheme(isoSpaceKey), wins: _isoWinList(isoSpaceKey) }); // 导出图含当前窗户位置
             _pushFloor(out, null, P, 1, theme, sp, G, night);
             const fA = P(G.cols, 0), fB = P(G.cols, G.rows), fC = P(0, G.rows);
             poly([[fA[0], fA[1]], [fB[0], fB[1]], [fB[0], fB[1] + 3], [fA[0], fA[1] + 3]], _shade(theme.wood, 0.9));
@@ -10117,6 +10652,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         if (p.spaces) {
             isoState.spaces = JSON.parse(JSON.stringify(p.spaces));
             Object.keys(ISO_SPACES).forEach(k => { if (!isoState.spaces[k] || !Array.isArray(isoState.spaces[k].items)) isoState.spaces[k] = { items: [] }; });
+            Object.keys(ISO_SPACES).forEach(k => { if (ISO_SPACES[k] && !ISO_SPACES[k].outdoor && ISO_SPACES[k].win) _isoWinList(k); }); // 老存档补齐窗户数据（位置与旧版一致）
         }
         isoState.activePlanId = p.id;
         isoSelId = null; heldClear();
@@ -10605,18 +11141,22 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
         if (!vp) return;
         const activePtrs = new Map();
         let isoEmptyDrag = null;
+        let isoPick = null; // 二阶选中：未选中家具上的按下（松手选中 / 滑动转平移）
+        let isoWinDrag = null; // 窗户拖拽（沿墙移动）
         let isoPinch = null;
         let isoLastPointerType = 'mouse';
         vp.addEventListener('wheel', function (e) { e.preventDefault(); _isoZoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.1 : 0.9); }, { passive: false });
         vp.addEventListener('pointerdown', function (ev) {
             isoLastPointerType = ev.pointerType || 'mouse';
             if (ev.target.closest && ev.target.closest('button')) return; // 视口内 UI 按钮（缩放/操作栏/家具库）不触发画布交互
+            if (isoLibOpen) _setIsoLibOpen(false); // 点击面板外画布区域：自动收起家具库（3.3）
             activePtrs.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
             const itemEl = ev.target.closest ? ev.target.closest('.furn-item') : null;
+            const winEl = ev.target.closest ? ev.target.closest('.iso-win-item') : null;
             // 触屏长按弹右键菜单（0.55s）：手指没怎么动才触发
             _clearIsoHold();
-            if (itemEl && isoLastPointerType !== 'mouse') {
-                isoHold = { id: itemEl.dataset.id, x: ev.clientX, y: ev.clientY };
+            if ((itemEl || winEl) && isoLastPointerType !== 'mouse') {
+                isoHold = { id: (winEl || itemEl).dataset.id, x: ev.clientX, y: ev.clientY, win: !!winEl };
                 isoHoldTimer = setTimeout(function () {
                     const h = isoHold;
                     isoHold = null; isoHoldTimer = null;
@@ -10629,11 +11169,12 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
                         isoDrag = null;
                     }
                     if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+                    if (h.win) { isoSelId = h.id; _renderIsoWinEls(); _updateIsoItemBar(); return; } // 窗户长按：选中并弹操作栏
                     _openIsoCtx(h.x, h.y, h.id, true);
                 }, 560);
             }
             // 双指捏合缩放（手机主要缩放手势）
-            if (activePtrs.size === 2 && !isoDrag && !isoHeld && !isoLibDrag) {
+            if (activePtrs.size === 2 && !isoDrag && !isoHeld && !isoLibDrag && !isoWinDrag) {
                 const pts = [...activePtrs.values()];
                 isoPinch = { d: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), mx: (pts[0].x + pts[1].x) / 2, my: (pts[0].y + pts[1].y) / 2 };
                 isoEmptyDrag = null;
@@ -10643,11 +11184,29 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             if (isoSpaceHeld || ev.button === 1) { _startPan(ev); return; }
             if (ev.button === 2) return;
             if (isoHeld) { _isoTapPlace(ev); return; } // 手持家具：点房间即放置
-            if (itemEl) { _isoItemDragStart(itemEl, ev); }
+            if (winEl) {
+                // —— 窗户同样走二阶选中制：未选中单击 = 选中；已选中才可拖动 ——
+                if (winEl.dataset.id !== isoSelId) {
+                    isoPick = { id: winEl.dataset.id, sx: ev.clientX, sy: ev.clientY, px: isoPan.x, py: isoPan.y, moved: false, win: true };
+                    return;
+                }
+                _isoWinDragStart(winEl, ev);
+                return;
+            }
+            if (itemEl) {
+                // —— 二阶选中制：未选中家具单击 = 选中（松手生效）；只有已选中的家具才响应拖拽 ——
+                if (!isoRecycleMode && itemEl.dataset.id !== isoSelId) {
+                    isoPick = { id: itemEl.dataset.id, sx: ev.clientX, sy: ev.clientY, px: isoPan.x, py: isoPan.y, moved: false };
+                    return;
+                }
+                _isoItemDragStart(itemEl, ev);
+            }
             else { isoEmptyDrag = { sx: ev.clientX, sy: ev.clientY, px: isoPan.x, py: isoPan.y, moved: false }; }
         });
         vp.addEventListener('contextmenu', function (e) {
             e.preventDefault();
+            const wEl2 = e.target.closest ? e.target.closest('.iso-win-item') : null;
+            if (wEl2 && isoLastPointerType === 'mouse') { _openIsoWinCtx(e.clientX, e.clientY, wEl2.dataset.id); return; }
             const el = e.target.closest ? e.target.closest('.furn-item') : null;
             // 触屏长按不弹菜单；鼠标右键弹「旋转/开关/复制/收起」菜单
             if (el && isoLastPointerType === 'mouse') _openIsoCtx(e.clientX, e.clientY, el.dataset.id);
@@ -10676,7 +11235,15 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             }
             if (isoPanDrag) { isoPan.x = isoPanDrag.px + (ev.clientX - isoPanDrag.sx); isoPan.y = isoPanDrag.py + (ev.clientY - isoPanDrag.sy); _applyIsoTransform(); return; }
             if (isoDrag) { _isoItemMove(ev); return; }
+            if (isoWinDrag) { _isoWinMove(ev); return; }
             if (isoLibDrag) { _isoLibMove(ev); return; }
+            if (isoPick) {
+                // 未选中家具上滑动手势 = 平移视角（不会带动家具）
+                const pdx = ev.clientX - isoPick.sx, pdy = ev.clientY - isoPick.sy;
+                if (!isoPick.moved && Math.hypot(pdx, pdy) > 6) { isoPick.moved = true; vp.classList.add('iso-panning'); }
+                if (isoPick.moved) { isoPan.x = isoPick.px + pdx; isoPan.y = isoPick.py + pdy; _applyIsoTransform(); }
+                return;
+            }
             if (isoHeld) {
                 // 手持家具：跟随手指显示落格高亮（放哪一目了然）
                 const hi = document.getElementById('isoHeldHi');
@@ -10705,7 +11272,17 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             activePtrs.delete(ev.pointerId);
             if (activePtrs.size < 2) isoPinch = null;
             _clearIsoHold();
+            if (isoPick) {
+                if (!isoPick.moved && isoPick.id !== isoSelId) {
+                    isoSelId = isoPick.id;
+                    _renderIsoItems(); _renderIsoWinEls(); // 两类图层都刷新，保证旧选中态清除
+                    _updateIsoItemBar();
+                }
+                isoPick = null;
+                return;
+            }
             if (isoPanDrag) { isoPanDrag = null; vp.classList.remove('iso-panning'); _isoSave(); return; }
+            if (isoWinDrag) { _isoWinDrop(ev); return; }
             if (isoDrag) { _isoItemDrop(ev); return; }
             if (isoLibDrag) { _isoLibDrop(ev); return; }
             if (isoEmptyDrag) {
@@ -12039,12 +12616,27 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             else if (tab === 'memo') renderMemoLists();
             else if (tab === 'settings') renderSettingsPage();
         } catch (e) { try { console.warn('[renderApp]', e); } catch (e2) {} }
+        try { updateUnreadBadges(); } catch (e2) {} // 数据合并后徽章即时刷新
     }
 
     // ==================== 云端快照全量合并 ====================
     // 策略：数组类按 id 补缺；手账按 updateTime 新者胜（评论也会更新该字段，评论因此能同步）；
     // 备忘条目的勾选状态、清单名称/图标按"云端为准"（拉取即表示接受对方最新状态）；
     // users / 基础信息沿用原规则。返回是否有任何变化。
+    // ==================== 动态保留期（省额度） ====================
+    // 空间动态只保留最近 7 天，更早的自动删除：本机启动、新增动态、每次云合并时都会清一次，
+    // 防止旧快照把过期动态反复带回云端（快照体积与同步流量随之变小）。
+    const ACTIVITY_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+    function _pruneOldActivities() {
+        try {
+            if (!Array.isArray(appData.activities)) { appData.activities = []; return 0; }
+            const cutoff = Date.now() - ACTIVITY_RETENTION_MS;
+            const before = appData.activities.length;
+            appData.activities = appData.activities.filter(a => a && (a.time || 0) >= cutoff);
+            return before - appData.activities.length;
+        } catch (e) { return 0; }
+    }
+
     function mergeCloudSnapshot(remoteData) {
         if (!remoteData || typeof remoteData !== 'object') return false;
         let changed = false;
@@ -12080,6 +12672,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
                 else localArr.sort((a, b) => (b.time || b.createTime || 0) - (a.time || a.createTime || 0));
                 if (k === 'activities' && localArr.length > 50) localArr.length = 50;
                 appData[k] = localArr;
+                if (k === 'activities') _pruneOldActivities(); // 合并进来的过期动态就地清理
                 changed = true;
             }
         });
@@ -12298,6 +12891,31 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             });
         }
 
+        // 7.5 动态保留期检查：无论本次合并有没有新内容，都清一次过期动态（防旧快照反复带回，省额度）
+        if (appData.activities && appData.activities.length && _pruneOldActivities() > 0) changed = true;
+
+        // 8. 合并未读已读标记：按用户取最大时间戳（每人只写自己的标记，跨设备取并集即安全）
+        if (remoteData.readMarks && typeof remoteData.readMarks === 'object') {
+            if (!appData.readMarks || typeof appData.readMarks !== 'object') appData.readMarks = {};
+            Object.keys(remoteData.readMarks).forEach(uid => {
+                const rm = remoteData.readMarks[uid];
+                if (!rm || typeof rm !== 'object') return;
+                if (!appData.readMarks[uid] || typeof appData.readMarks[uid] !== 'object') appData.readMarks[uid] = {};
+                const lm = appData.readMarks[uid];
+                let rChanged = false;
+                if ((rm.chatAt || 0) > (lm.chatAt || 0)) { lm.chatAt = rm.chatAt; rChanged = true; }
+                ['jRead', 'cdSeen', 'memoSeen'].forEach(k => {
+                    const rmap = rm[k];
+                    if (!rmap || typeof rmap !== 'object') return;
+                    if (!lm[k] || typeof lm[k] !== 'object') lm[k] = {};
+                    Object.keys(rmap).forEach(id => {
+                        if ((rmap[id] || 0) > (lm[k][id] || 0)) { lm[k][id] = rmap[id]; rChanged = true; }
+                    });
+                });
+                if (rChanged) changed = true;
+            });
+        }
+
         return changed;
     }
 
@@ -12348,6 +12966,106 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
                 if (!document.hidden) autoSyncTick(); // 切回页面立即同步一次
             });
         }
+    }
+
+    // ==================== 退出时自动同步（切后台/关页面都补一次“拉合并→推送”） ====================
+    // 原理：页面卸载阶段只有同步 XHR 能可靠完成网络请求，所以退出通道用 async=false 的 XHR：
+    // 先把云端最新快照拉下来合并（防止用旧数据覆盖对方刚推的内容），再把本机全集推回去。
+    // 只在本机有“尚未同步到云端”的改动时才发流量；失败完全静默，不影响退出，下次打开 autoSyncTick 会补。
+    let _exitSyncAt = 0;
+    function exitSyncFlush() {
+        try {
+            if (!TCB_CONFIG.enabled || !TCB_CONFIG.publishKey) return;
+            if (!appData || !appData.spaceId || !appData.currentUserId) return;
+            if (typeof CloudSync === 'undefined' || !CloudSync._gatewayObjectUrl) return;
+            const now = Date.now();
+            if (now - _exitSyncAt < 4000) return; // 4 秒内多次触发（pagehide+beforeunload 等）只执行一次
+            _exitSyncAt = now;
+            const lastSave = window.__liziLastSaveAt || 0;
+            const lastSync = (CloudSync.state && CloudSync.state.lastSyncAt) || 0;
+            if (lastSave && lastSync && lastSave <= lastSync) return; // 没有未同步的改动，不花流量
+            const url = CloudSync._gatewayObjectUrl(CloudSync._snapshotCloudPath(appData.spaceId));
+            const auth = CloudSync._gwAuthHeader();
+
+            // 1) 同步拉取云端快照并合并（对方可能刚推过新数据）
+            try {
+                const xr = new XMLHttpRequest();
+                xr.open('GET', url, false);
+                xr.setRequestHeader('Authorization', auth);
+                try { xr.setRequestHeader('Cache-Control', 'no-store'); } catch (he) {}
+                xr.send(null);
+                if (xr.status === 200 && xr.responseText) {
+                    const snap = JSON.parse(xr.responseText);
+                    const remote = (snap && snap.payload) ? snap.payload : snap;
+                    if (remote && typeof remote === 'object' && mergeCloudSnapshot(remote)) {
+                        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (le) {}
+                    }
+                }
+            } catch (pe) { /* 拉取失败不影响推送 */ }
+
+            // 2) 同步推送本机全集（与 CloudSync.push 相同的快照结构与截断规则）
+            let payloadData = appData;
+            const maxSync = parseInt(TCB_CONFIG.cloudMaxMessages || '500', 10);
+            const truncArr = function (arr, field) { return arr.slice().sort(function (a, b) { return (a[field] || 0) - (b[field] || 0); }).slice(-maxSync); };
+            const patch = {};
+            if (Array.isArray(appData.messages) && appData.messages.length > maxSync) patch.messages = truncArr(appData.messages, 'time');
+            if (Array.isArray(appData.accounts) && appData.accounts.length > maxSync) patch.accounts = truncArr(appData.accounts, 'createTime');
+            if (Object.keys(patch).length) payloadData = Object.assign({}, appData, patch, { _truncated: true });
+            const snapshot = {
+                _type: 'lizi-space-snapshot',
+                _version: 1,
+                _updatedAt: Date.now(),
+                _updatedBy: (CloudSync._userId || appData.currentUserId || 'anonymous'),
+                payload: payloadData
+            };
+            const body = JSON.stringify(snapshot);
+            const xp = new XMLHttpRequest();
+            xp.open('POST', url, false);
+            xp.setRequestHeader('Authorization', auth);
+            xp.setRequestHeader('Content-Type', 'application/json');
+            xp.setRequestHeader('x-upsert', 'true');
+            xp.send(body);
+            if (xp.status >= 200 && xp.status < 300) {
+                _netBytesAdd('up', body.length);
+                if (CloudSync.state) {
+                    CloudSync.state.lastSyncAt = Date.now();
+                    if (CloudSync.state.diagnostics) { CloudSync.state.diagnostics.lastPushOk = true; CloudSync.state.diagnostics.lastPushAt = Date.now(); }
+                }
+            }
+        } catch (e) { /* 退出同步失败静默，不影响退出 */ }
+    }
+
+    // 退出同步钩子：只装一次
+    function installExitSyncHooks() {
+        if (window.__liziExitSyncHooks) return;
+        window.__liziExitSyncHooks = true;
+        try { document.addEventListener('visibilitychange', function () { if (document.hidden) exitSyncFlush(); }); } catch (e) {}
+        try { window.addEventListener('pagehide', function () { exitSyncFlush(); }); } catch (e) {}
+        try { window.addEventListener('beforeunload', function () { exitSyncFlush(); }); } catch (e) {}
+    }
+
+    // ==================== 进入空间自动同步一次 ====================
+    // 每次打开应用进入空间 / 创建或加入空间后：等云连接就绪，立即做一次拉取→合并→（有变化）推回，
+    // 让开机头几秒就能看到对方的新内容、刷新未读红点；10 秒内多次进入只同步一次。
+    let _enterSyncAt = 0;
+    async function enterSpaceSync() {
+        try {
+            if (!TCB_CONFIG.enabled || !appData || !appData.spaceId || !appData.currentUserId) return;
+            const now = Date.now();
+            if (now - _enterSyncAt < 10000) return;
+            _enterSyncAt = now;
+            // 启动流程里的 init（800ms 后）可能还在进行：等它完成，避免并发重复登录；等不到再自己兜底
+            let waited = 0;
+            while (!CloudSync.state.initialized && CloudSync.state.status === 'initializing' && waited < 8000) {
+                await new Promise(r => setTimeout(r, 300));
+                waited += 300;
+            }
+            if (!CloudSync.state.initialized) {
+                const r = await CloudSync.init();
+                if (!r || (!r.ok && !r.pseudoMode)) return;
+            }
+            await autoSyncTick();
+        } catch (e) { try { console.warn('[进入同步]', (e && e.message) || e); } catch (e2) {} }
     }
 
     async function manualCloudPull() {
@@ -13026,7 +13744,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
             'renderNextMeeting', 'toggleNextMeetingForm', 'saveNextMeeting', 'clearNextMeeting', 'refreshBottomNavTheme',
             'renderAccountPage', 'openAccountEditor', 'closeAccountEditor', 'setAccountType', 'selectAccountCategory', 'selectAccountBook', 'selectEditorBook',
             'selectAccountMonth', 'shiftAccountMonth', 'toggleAccountMonthDropdown',
-            'toggleActivitySearch', 'handleActivitySearch', 'clearActivitySearch', 'selectActivityDay', 'selectActivityRange', 'locateActivityDate',
+            'toggleActivitySearch', 'handleActivitySearch', 'clearActivitySearch', 'selectActivityRange',
             'isoUndo', 'isoRedo', 'toggleIsoNight', 'toggleIsoFocus', 'applyIsoCombo', 'isoCtxAction', 'isoToggleSelected', 'toggleIsoPals',
             'isoScaleSelected', 'isoRecycleToggle', 'isoAllRecycle', 'isoToggleSnap', 'isoGotoGarden',
             'openIsoPlans', 'closeIsoPlans', 'isoPlanSaveNew', 'isoPlanLoad', 'isoPlanOverwrite', 'isoPlanRename', 'isoPlanDelete', 'isoPlanExport', 'isoPlanImport', 'isoPlanSetHome',
@@ -13083,6 +13801,7 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
                 document.getElementById('bottomNavBar').classList.remove('hidden');
                 switchTab('home');
                 fitChatInputBar();
+                setTimeout(function () { try { enterSpaceSync(); } catch (e) {} }, 1500); // 每次进入空间自动同步一次
                 // 🌸 启动直达小屋（纯本地偏好）
                 try { if (isoStartupOn()) setTimeout(function () { openGameRoom(); }, 120); } catch (e) {}
                 // 每日首次上线提醒：延后到云同步首拉之后再判，避免与另一台设备重复
@@ -13123,6 +13842,8 @@ function _pushFloor(out, T, P, S, theme, sp, G, night) {
                     if (res && res.ok) {
                         // 启动后台自动双向同步（拉取→合并→推回），手账/动态/备忘/倒数日自动到达对方
                         startAutoSync();
+                        // 退出页面（切后台/关页面）时自动补一次同步，确保最新数据已上云
+                        installExitSyncHooks();
                         // 开机 30 秒后低频清扫一次往月归档（签名没变的月份零流量跳过）
                         setTimeout(function () { try { sweepHistoryArchives(); } catch (e) {} }, 30000);
                         // 首次初始化成功后，如果有本地数据就推送一次，没有就尝试拉一次
