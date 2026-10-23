@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>栗子题库设置</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="栗子题库">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="truth-icon.png">
+<style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+        background: linear-gradient(160deg, #f7ede1, #f3e3cd);
+        font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .card {
+        width: 100%; max-width: 420px; background: #fffaf2; border-radius: 18px;
+        box-shadow: 0 16px 44px rgba(80, 50, 20, .18); padding: 22px 20px;
+    }
+    h1 { margin: 0 0 4px; font-size: 20px; color: #5b3a1e; }
+    .sub { margin: 0 0 16px; font-size: 12.5px; color: #a58a6b; }
+    label { display: block; font-size: 13.5px; color: #6b4a2b; font-weight: 600; margin: 14px 0 6px; }
+    .hint { font-weight: 400; color: #b09a7d; font-size: 12px; }
+    input, textarea {
+        width: 100%; border: 1.5px solid #e2cbaa; border-radius: 12px; background: #fff;
+        padding: 11px 12px; font-size: 14.5px; color: #4a331c; font-family: inherit; outline: none;
+    }
+    input:focus, textarea:focus { border-color: #b9804b; }
+    textarea { min-height: 150px; resize: vertical; line-height: 1.7; font-size: 13.5px; }
+    button {
+        border: 0; border-radius: 12px; padding: 11px 0; font-size: 14.5px; font-weight: 600;
+        cursor: pointer; font-family: inherit; width: 100%; margin-top: 10px;
+        background: #efe3d2; color: #6b4a2b;
+    }
+    button:disabled { opacity: .55; }
+    button.primary { background: linear-gradient(135deg, #8f5e33, #633a1e); color: #fff; box-shadow: 0 4px 12px rgba(99, 58, 30, .35); }
+    .row { display: flex; gap: 8px; }
+    .row button { flex: 1; margin-top: 10px; padding: 10px 0; font-size: 13px; }
+    .cur {
+        font-size: 12.5px; color: #6b4a2b; background: #f6ead8; border-radius: 10px;
+        padding: 10px 12px; line-height: 1.7; word-break: break-all; white-space: pre-wrap;
+    }
+    .cats { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0 2px; }
+    .cat-chip {
+        border: 1.5px solid #e2cbaa; background: #fff; color: #85532E; border-radius: 999px;
+        padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+        width: auto; margin: 0;
+    }
+    .cat-chip.on { background: linear-gradient(135deg, #8f5e33, #633a1e); color: #fff; border-color: #633a1e; }
+    .msg { font-size: 13px; min-height: 18px; margin: 12px 0 0; line-height: 1.55; word-break: break-all; }
+    .ok { color: #2e7d32; } .err { color: #c0392b; } .gray { color: #8a7358; }
+    #pinView input { text-align: center; letter-spacing: 3px; font-size: 17px; }
+</style>
+</head>
+<body>
+    <div id="pinView" class="card" hidden>
+        <h1>🌰 栗子题库设置</h1>
+        <p class="sub">仅空间主人使用 · 请输入管理口令（打错能看见）</p>
+        <input id="pin" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="管理口令">
+        <button id="pinBtn" class="primary" onclick="window.__liziTikuUnlock && window.__liziTikuUnlock()">解 锁</button>
+        <p id="pinMsg" class="msg err"></p>
+    </div>
+
+    <div id="panel" class="card" hidden>
+        <h1>🌰 栗子题库设置</h1>
+        <p class="sub">真心话大冒险 · 粘贴即可更新题库，保存后两人手机下次打开真心话即生效</p>
+        <div id="bankInfo" class="cur">读取云端题库中…</div>
+        <label>选择分类 <span class="hint">（下面粘贴的题目若不带「分类|」前缀，就归到这里）</span></label>
+        <div id="catChips" class="cats"></div>
+        <label>粘贴题目 <span class="hint">（一行一题；也可写「分类|题目」指定分类，如：走心|你最爱我哪一点）</span></label>
+        <textarea id="paste" placeholder="例如：&#10;今天最想和我做的一件小事是什么？&#10;走心|哪一刻你确定我是爱你的？&#10;回忆|我们第一次约会你紧张吗？"></textarea>
+        <button id="appendBtn" class="primary" onclick="bankAppend()">➕ 追加到所选分类（自动去重）</button>
+        <div class="row" id="singleCatOps">
+            <button onclick="bankReplace()">♻️ 用粘贴内容替换所选分类</button>
+            <button onclick="bankClearCat()">🧹 清空所选分类</button>
+            <button onclick="bankRestoreCat()">↩️ 该分类恢复内置题库</button>
+        </div>
+        <div class="row">
+            <button id="undoBtn" onclick="bankUndo()">↩️ 撤销上一步</button>
+            <button onclick="bankClearPaste()">🧹 清空粘贴区</button>
+        </div>
+        <div class="row">
+            <button onclick="bankExport()">📤 查看·导出当前视图</button>
+        </div>
+        <button id="saveBtn" class="primary" onclick="bankSave()">💾 保存全部到云端（版本+1，两人手机生效）</button>
+        <button id="undoPubBtn" onclick="bankUndoPublish()" hidden>⏪ 撤回上次发布（回到之前版本内容）</button>
+        <p id="msg" class="msg gray"></p>
+    </div>
+
+<script src="admin-gateway.js?v=2" defer></script>
+<script>
+var BUILTIN_QB = {"c1":["今天遇到的最想第一时间跟我分享的小事是什么？","如果现在能拉着我做一件小事，你最想做什么？","最近吃到的东西里，最想带我去吃的是哪一样？","今天通勤路上，脑子里突然想到了我们什么事？","今天穿搭是什么风格，给自己打几分？","现在窗外的天气怎么样，像不像我们的心情？","今天喝的第一杯饮料是什么，甜度多少？","今天走路时听的是什么歌，想到我了吗？","现在几点了，你今天累不累呀？","今天手机相册最新一张照片是什么，给我讲讲？","晚饭吃了什么，有没有想给我留一口？","今天路上看到什么好玩的，想拍给我看？","今天有没有哪个瞬间特别想我？","现在手边离你最近的小东西是什么？","今天发生了什么让你笑出声的事？","今天的日落好看吗，拍给我看看好不好？","最近一次熬夜是为了什么小破事？","今天有没有偷懒呀，偷懒做了什么？","这周最期待的一件小事是什么？","今天买的最值的一样小东西是什么？","现在身上的衣服是哪一件，舒服吗？","今天有没有被人夸，夸了什么？","今天最想吐槽的一件小事是什么？","如果现在我在你身边，你想先拉我去做什么？","今天几杯咖啡奶茶了，超纲了吗？","最近手机屏幕使用时间最长的是哪个 App？","今天有什么小确幸，说出来让我也开心下？","现在外面冷不冷，有没有好好保暖？","今天有没有遇到什么可爱的小动物？","昨晚梦到什么了，里面有我吗？","今天早餐吃了什么，有没有好好吃饭？","最近循环最多的一首歌是哪首？","今天最放松的十分钟是怎么度过的？","你现在的桌面房间乱不乱，实话实说？","今天有什么想让我夸夸你的事？","最近有没有种草什么小玩意想让我一起看？","今天刷到最好笑的一个视频是什么类型的？","这周有没有吃到特别惊艳的东西？","今天天气这么好，如果我在会做什么？","你现在坐的地方能看到什么风景？","最近一次给别人让座或帮忙是什么时候？","今天有没有什么话想说又咽回去了？","今天的心情打分的话是几分，为什么？","现在困不困，今天打算几点睡？","今天有没有收到什么小惊喜？","最近收藏夹里最新的一条存了什么？","今天有什么小烦恼，说出来我帮你背着？","你最近一次开怀大笑是因为什么？","今天的你和我刚认识时比，有什么不一样？","今天最想被摸摸头的一个瞬间是？","最近一次心动的瞬间是什么，对象只能是我？","今天朋友圈刷到什么有意思的？","现在最喜欢的季节是哪个，为什么？","今天有没有认真吃水果呀？","最近有什么想学的零碎小技能？","今天有没有什么没做完的事，会焦虑吗？","你现在最想吃的三样东西是什么？","今天有没有偷偷可爱给谁看？","最近一次运动是什么时候，做了什么？","今天出门第一件事做的是什么？","你手机壁纸现在是什么，有什么故事吗？","最近有没有看什么剧或综艺，追到哪了？","今天有没有什么想夸夸我的地方？","最近一次走很长的路是去干嘛？","今天有没有什么小进步，说来听听？","现在的空气里有没有什么味道让你舒服？","今天如果给心情配个颜色，是什么色？","最近有没有特别想养的小宠物？","今天有没有和谁聊到关于我的话题？","最近一次早起是因为什么？","今天遇到的人里谁让你印象最深？","你最近睡前做的最后一件事是什么？","今天有没有什么想买又忍住的东西？","现在你身边有零食吗，是什么？","最近一次照镜子觉得自己不错是什么时候？","今天有什么话想对三个月后的自己说？","最近雨天多不多，你喜欢下雨吗？","今天有没有帮到别人什么小忙？","你现在最想去的一个地方是哪？","最近有没有发现什么好吃的店想去打卡？","今天的心情像哪种小动物？","最近一次整理房间或桌面是什么时候？","今天有没有什么瞬间觉得时间过得好快？","你最近在为什么小事努力着？","今天有没有什么想跟我一起吐槽的？","最近有没有什么坏习惯想改掉？","今天发生的所有事里哪件最想写进日记？","现在如果外卖能送任何东西，你点什么？","最近一次觉得幸好有 TA 是什么时候？","今天睡醒的第一反应是什么？"],"c2":["你第一次对我心动，是哪个具体的瞬间？","我们见面的日子里，你最想重来一次的是哪一天？","我做过的哪件小事，让你暖心到现在？","异地以来，你最想念我在身边的哪个小习惯？","还记得我们第一次约会时，你心里最紧张的是什么吗？","我们聊的第一句话是什么，你还记得吗？","你是什么时候确定「就是这个人了」？","我们一起做过最傻的一件事是什么？","哪一次见面告别的时候，你最难舍？","我们哪张合照你最喜欢，为什么？","还记得我们第一次一起吃东西吃的什么吗？","我送你的东西里，你最喜欢哪一样？","我们之间哪个梗或暗号是你最喜欢的？","有没有哪句话我说过一次你就记住了？","我们第一次牵手是什么场景，还记得吗？","你最喜欢我们哪次聊天，聊了什么？","我们哪一次和好让你印象最深？","我哪个瞬间让你觉得这个人好温柔？","你还记得我第一次给你唱歌或念东西吗？","我们一起走过最远的一段路是哪次？","哪个我们一起吃过的味道，你现在还会想起？","我们第一次视频或打电话聊了多久？","你给我起过什么小昵称，还在用吗？","我们之间你偷偷记住的纪念日有哪些？","哪次我说的话让你开心了好几天？","我们一起看过的内容里你最喜欢哪部哪首？","你第一次叫我名字的时候，是什么感觉？","我们的聊天记录里你最爱翻哪一段？","哪一次我做的决定让你觉得特别靠谱？","我们之间哪个瞬间你最想截图保存？","还记得我们第一次说晚安是什么时候吗？","我哪里生气的样子你反而觉得可爱？","我们哪次一起淋过雨晒过太阳，还记得吗？","你学会我的哪个小习惯或口头禅了？","我们哪次聊天聊到了天亮？","第一次收到我的礼物时你在想什么？","我们哪个约定是你最当真的？","哪顿我们一起吃的饭你最想再吃一次？","我穿哪种风格你最喜欢看？","我们之间你珍藏了哪个小秘密？","哪一次你半夜想我，忍住没找我？","我们认识多久后你告诉朋友了？","你最爱用的我们的合照是哪张？","我教会过你什么小事？","哪个瞬间你突然觉得我们很像？","我们第一次一起笑到肚子疼是因为什么？","我做过的哪件傻事你现在还会笑？","哪次见面你提前几天就开始期待？","我们的第一次出游，你记得什么细节？","你把我的一句话写在哪里过吗？","我们之间最老夫老妻的一个瞬间？","哪次你难受时我做的什么让你记到现在？","我们的聊天备注是什么，有什么含义？","第一次牵手之后你在心里说了什么？","我们哪张表情包你用得最多？","哪个瞬间你特别想时光机回到当时再看一遍？","我们之间你私藏的一句话是什么？","如果把我们的故事拍成短片，第一幕是什么？","我们的故事里，哪一天你想讲给以后的孩子听？","你还记得我们第一次见面时，我穿的什么吗？"],"c3":["下次见面，你最想和我一起完成的一件小事是什么？","如果有一周完整假期，你想和我去哪里待着？","你理想中我们以后的小家，一定要有什么小物件？","今年之内，你最想和我实现的一个小愿望是什么？","你希望我们老了以后，是什么样的相处状态？","你想养猫还是养狗，还是都要？","我们未来的家，你想要大阳台还是大厨房？","你希望我们每个月有个固定的约会日吗？","你想和我一起养成一个什么新习惯？","如果我们定居一个城市，你希望它是什么样的？","你想和我一起去听一场谁的演唱会？","五年后的我们，你希望在做什么？","你想让我陪你完成的一件清单大事是什么？","我们的小家要不要留一面照片墙？","你希望未来的我保持哪个现在的样子？","如果养一只宠物，你想给它起什么名字？","你想和我一起学一样什么东西吗？","我们未来的周末，你最理想的过法是什么？","你想和我一起看多少次日出才算够？","我们的婚礼，你心里最想要的一个元素是什么？","你希望未来的孩子在哪方面像你哪方面像我？","你想和我建立的一个家庭小仪式是什么？","如果我们开一家小店，你想卖什么？","你希望我们存钱是为了什么第一个大目标？","老了以后你想和我一起学什么？","你想和我一起过什么样的春节？","我们的第一套房，你想要什么颜色的大门？","你希望我以后做哪件事能坚持一辈子？","想不想和我一起写未来的愿望清单？","你想和我在哪个海边或山顶看一次星星？","我们以后谁管账，你希望怎么分工？","你希望我们每周一起做几次饭？","如果每年拍一张合照，你想在哪里拍第一张？","你想让我陪你回你老家做哪件事？","我们未来的冰箱上第一张贴纸是什么？","你想要的蜜月是什么样子的？","你希望我们吵架后多久必须和好？","你想和我一起参加一次什么样的活动？","以后家里的书架，你想放什么书？","你希望十年后的我是什么样的人？","我们要不要养一盆一起命名的绿植？","你想让我们的家最让人羡慕的一点是什么？","如果定制一对情侣物件，你想要什么？","你希望我们之间的哪个传统延续一辈子？","下辈子还想不想遇到我，想第一句说什么？"],"c4":["异地恋里，你觉得最委屈最想掉眼泪的时刻是什么时候？","有没有哪一刻，你特别确定我是爱着你的？","你心里藏着最想跟我说、但一直没说出口的一句话是什么？","什么时候你会特别希望，我能立刻出现在你身边？","你觉得我身上有什么，是你之前没发现的优点？","你在什么时刻会觉得没有安全感，我可以怎么给你？","我做过哪件事让你觉得被放在心上？","你最害怕我们之间发生什么，我们可以怎么避免？","哪个瞬间你觉得我们之间有距离，后来怎么好的？","你希望我更主动做的一件小事是什么？","有什么你的小脆弱，是想只让我知道的？","你觉得我哪方面还可以更懂你一点？","我们吵架时，你最希望我第一句说什么？","你什么时候会觉得孤单，哪怕在聊天？","你最想被理解的一个小脾气是什么？","有哪件事你一直想道歉，还没正式说过？","你觉得爱情里最不能省略的一件小事是什么？","我的哪种表达爱的方式，让你最有感觉？","你小时候的哪个经历，塑造了现在爱人的你？","你难过的时候，希望我陪着还是先让你静一静？","你有没有偷偷对比过我们的恋爱和别人，结论是什么？","哪句话你希望我以后不要再说？","你觉得自己哪里值得被爱，说三条给我听？","我们在一起后，你最大的变化是什么？","你心里有没有一个小小的担忧，说出来我们一起解决？","如果爱有形状，你心里的爱是什么样子的？","你希望以后的我，在你难过时具体怎么做？","哪一刻你觉得我们能走很远？","你最想听我说的一句什么话？","你觉得我们最珍贵的共同点是什么？","有什么压力是你最近在扛着没说的？","你理想中被爱是什么感觉？","我们之间你最喜欢的一种相处状态是？","如果给爱打分，扣掉的分数想让我怎么补？","你有没有觉得自己哪方面配不上我，说给我听我来反驳？","你希望我们老了以后第一件一起做的事是什么？","我哪句情话你决定记一辈子？","你心中最浪漫的小事是什么，我们一起做一次？","你觉得我懂你吗，哪里最懂哪里还想我更懂？","有什么夸奖你一直想听到但没听够的？","你最近一次为我感到骄傲是什么时候？","如果能对十年前的自己说一句话，你会说什么？","你觉得我们的爱最像什么？","你希望我记住你的哪一天，为什么？","什么时候你觉得，为了我吃苦也是甜的？"],"c5":["如果我突然变成小动物，你觉得我会是什么？","假如我们现在同居，你觉得谁会先赖床不起？","如果有一项超能力，你最想用来为我们做什么？","假如我们互换身体一天，你第一件事想做什么？","如果能穿越回刚认识的时候，你想对当时的自己说什么？","如果我们是动画片角色，你觉得像哪两个？","你觉得我们的爱情是什么口味的，为什么？","如果给我俩的故事起个书名，你会叫它什么？","假如把我们的聊天记录做成书，封面放哪句话？","如果我们开车环游，你想开去哪放什么歌？","你觉得我上辈子是什么，神仙还是小妖怪？","假如我们各有超能力，你猜我的会失效在什么时刻？","假如我们是同杯奶茶里的两种配料，你我是哪两种？","如果爱情是一场游戏，我们的通关秘籍是什么？","你觉得我们谁先老谁先白发谁先老糊涂？","如果我们的家突然会说话，它第一句想吐槽什么？","假如能预订十年后的一条朋友圈，你想发什么？","如果我们的约定是一座桥，你猜它长什么样？","你觉得我变成哪种食物最可爱？","如果我们俩是一部电影，片尾曲你选哪首？","假如我们在古代相遇，你猜我们怎么认识？","如果给对方的心理状态配天气预报，今天我是什么天气？","你觉得我们吵架时像哪种小动物在炸毛？","如果能偷走对方一样好东西，你想偷什么？","假如我们的爱情有 BGM，现在播到第几集了？","你猜我们以后谁更啰嗦谁更记仇谁更黏人？","如果互送一份百元内但超用心的礼物，你送什么？","假如我们开一家保密的树洞店，门口挂什么牌子？","你觉得我们的 CP 名应该叫什么？","如果爱情有个进度条，你猜我们到百分之多少了？","假如我们能共同拥有一座小岛，你想在上面放什么？","如果我们各自变成一个 emoji，你我是哪两个？","你觉得我的哪个怪癖其实特别可爱？","假如我们是一部连续剧，观众最爱看我们哪段日常？","如果给未来的我们写一封慢递信，你想落款什么日期？","你觉得我们谁的方向感更差，谁来负责迷路？","假如把想你具象化，你觉得它多重什么颜色？","如果我们是超市里被放进同一个购物袋的两样东西，你我是啥？","你猜我手机里你占多大内存，猜完我告诉你？","如果我们养一只会说话的宠物，它最先学会说哪句？","假如我们互相布置一项作业，你想给我布置什么？","你觉得我们老了以后斗嘴的日常什么样？","如果让你当我的某种日常物品一天，你想当什么？","假如给我们的合照都加一句旁白，这张配哪句？","如果爱像奶茶，我们的甜度冰度和加料是什么？"],"c6":["最近有没有一瞬间对我有点小生气，因为什么事？","你觉得我做什么的时候，样子最可爱？","有没有一件小事，你想悄悄跟我说对不起？","你最欣赏我身上的哪一个特质？","我最近有哪里让你觉得在为我们的未来努力？","你希望我多一点还是少一点的哪种小脾气？","有什么想我改、但又怕我多想的小习惯？","最近哪次聊天你其实没看懂我的点，但装懂了？","你心里给我现在的耐心打几分？","有什么小误会你想现在澄清的？","我哪里偶尔让你有点小压力，说出来我改？","最近有没有哪一刻你很想我，但没说？","你希望我们之间说开的一件小事是什么？","我说过哪句玩笑话其实让你当真了一小下？","如果调整我们相处的一点点配比，你想调什么？"]};
+</script>
+<script>
+(function () {
+    'use strict';
+    // ===== 管理口令（改这里即可；输入自动忽略大小写/空格/全角）=====
+    var PIN = 'lizi666';
+    var BANK_PATH = 'lizi-space/truth-bank.json';
+    var CATS = [
+        { id: 'c1', name: '日常碎碎念', alias: ['日常', '碎碎念', '糖'] },
+        { id: 'c2', name: '共同回忆', alias: ['回忆', '照片'] },
+        { id: 'c3', name: '未来期许', alias: ['未来', '期许', '愿望'] },
+        { id: 'c4', name: '走心时刻', alias: ['走心', '深夜'] },
+        { id: 'c5', name: '趣味脑洞', alias: ['脑洞', '趣味'] },
+        { id: 'c6', name: '轻量真心话', alias: ['轻量', '真心话', '甜'] }
+    ];
+    var ALIAS = { 'c1': 'c1', 'c2': 'c2', 'c3': 'c3', 'c4': 'c4', 'c5': 'c5', 'c6': 'c6' };
+    CATS.forEach(function (c) { c.alias.forEach(function (a) { ALIAS[a] = c.id; }); });
+
+    var $ = function (id) { return document.getElementById(id); };
+    var cur = null;          // 云端原始对象
+    var working = {};        // 工作区：cat -> array（只包含被覆盖的分类）
+    var selCat = 'c1';
+    var dirty = false;
+    var undoStack = [];      // 撤销栈：{ label, working, selCat, dirty }
+    var lastPublish = null;  // 上一次发布的云端内容（用于 ⏪ 撤回发布）
+    var pasteIsAuto = false; // 粘贴区当前内容是否为自动展示（区分用户手动粘贴）
+
+    function msg(text, cls) {
+        var el = $('msg');
+        el.textContent = text || '';
+        el.className = 'msg ' + (cls || 'gray');
+    }
+    function busy(on) {
+        ['appendBtn', 'saveBtn'].forEach(function (id) { if ($(id)) $(id).disabled = !!on; });
+    }
+    function normPin(s) {
+        return String(s || '')
+            .replace(/\s+/g, '')
+            .replace(/[\uFF01-\uFF5E]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+            .toLowerCase();
+    }
+    function builtinOf(cat) { return (BUILTIN_QB && BUILTIN_QB[cat]) || []; }
+    function workingOf(cat) { return Object.prototype.toString.call(working[cat]) === '[object Array]' ? working[cat] : null; }
+    function effectiveOf(cat) { return workingOf(cat) !== null ? workingOf(cat) : builtinOf(cat); }
+    function catName(id) { var c = CATS.find(function (x) { return x.id === id; }); return c ? (c.name) : id; }
+
+    function renderCats() {
+        var box = $('catChips');
+        var chips = ['<button type="button" class="cat-chip' + (selCat === 'all' ? ' on' : '') + '" onclick="bankSelectCat(\'all\')">🗂 全部（自动分类）</button>'];
+        CATS.forEach(function (c) {
+            var covered = workingOf(c.id) !== null;
+            var n = effectiveOf(c.id).length;
+            chips.push('<button type="button" class="cat-chip' + (c.id === selCat ? ' on' : '') + '" onclick="bankSelectCat(\'' + c.id + '\')">' +
+                c.name.split('').slice(0, 2).join('') + ' ' + n + (covered ? '✏️' : '') + '</button>');
+        });
+        box.innerHTML = chips.join('');
+    }
+
+    function renderInfo() {
+        var lines = [];
+        lines.push('云端题库：' + (cur ? ('v' + (cur.version || 0) + ' · 更新于 ' + (cur.updatedAt || '?')) : '尚未发布（应用当前用内置 300 题）'));
+        lines.push('—— 各分类（✏️=云端已覆盖，否则用内置）——');
+        CATS.forEach(function (c) {
+            var covered = workingOf(c.id) !== null;
+            lines.push(c.name + '：' + (covered ? ('云端覆盖 ' + working[c.id].length + ' 题' + (dirty && cur && cur.qb && cur.qb[c.id] ? '（原 ' + cur.qb[c.id].length + '）' : '')) : ('未覆盖 · 内置 ' + builtinOf(c.id).length + ' 题')));
+        });
+        if (dirty) lines.push('● 有未保存的修改（保存前只在本页生效）');
+        $('bankInfo').textContent = lines.join('\n');
+    }
+
+    function refresh() {
+        renderCats();
+        renderInfo();
+        var all = (selCat === 'all');
+        var ops = $('singleCatOps');
+        if (ops) ops.classList.toggle('hidden', all);
+        var ab = $('appendBtn');
+        if (ab) ab.textContent = all ? '📥 一键粘贴导入（按「分类|题目」自动分类）' : '➕ 追加到所选分类（自动去重）';
+        var ub = $('undoBtn');
+        if (ub) ub.textContent = '↩️ 撤销上一步' + (undoStack.length ? '（' + undoStack.length + '）' : '');
+        var up = $('undoPubBtn');
+        if (up) up.hidden = !lastPublish;
+    }
+
+    // 解析粘贴内容：一行一题，支持「分类|题目」前缀（全角｜也认）
+    function parsePaste() {
+        var raw = $('paste').value.split('\n');
+        var out = [];
+        raw.forEach(function (line) {
+            var s = line.replace(/\r/g, '').trim();
+            if (!s) return;
+            var cat = selCat, q = s;
+            var i = s.search(/[|｜]/);
+            if (i > 0) {
+                var head = s.slice(0, i).replace(/[|｜]/g, '').trim();
+                var rest = s.slice(i + 1).trim();
+                if (ALIAS[head] && rest) { cat = ALIAS[head]; q = rest; }
+            }
+            out.push({ cat: cat, q: q });
+        });
+        return out;
+    }
+
+    window.bankSelectCat = function (id) {
+        if (id === selCat) return;
+        if (!pasteIsAuto && $('paste').value.trim()) {
+            if (!confirm('粘贴区有未处理的内容，切换视图会覆盖它。继续切换？')) return;
+        }
+        selCat = id;
+        refresh();
+        showCatInTextarea(false);
+    };
+    function snapUndo(label) {
+        undoStack.push({ label: label, working: JSON.parse(JSON.stringify(working)), selCat: selCat, dirty: dirty, paste: $('paste').value });
+        if (undoStack.length > 30) undoStack.shift();
+    }
+
+    window.bankAppend = function () {
+        if (selCat === 'all') { bankImportAll(); return; }
+        var items = parsePaste();
+        if (!items.length) { msg('粘贴区是空的：一行一题贴进来～', 'err'); return; }
+        snapUndo('追加到' + catName(selCat));
+        var added = 0, dup = 0;
+        items.forEach(function (it) {
+            var arr = workingOf(it.cat);
+            if (arr === null) { arr = builtinOf(it.cat).slice(); working[it.cat] = arr; }
+            var effSet = {};
+            effectiveOf(it.cat).forEach(function (q) { effSet[q] = 1; });
+            if (arr.indexOf(it.q) >= 0 || effSet[it.q]) { dup++; return; }
+            arr.push(it.q);
+            added++;
+        });
+        if (!added) { if (undoStack.length) undoStack.pop(); refresh(); msg('没有新增：' + (dup ? dup + ' 题都已存在' : '没有可加入的题目') + '。', 'gray'); return; }
+        dirty = true;
+        $('paste').value = '';
+        pasteIsAuto = true;
+        refresh();
+        msg('✅ 已加入 ' + added + ' 题' + (dup ? ('，跳过重复 ' + dup + ' 题') : '') + '。记得点「保存全部到云端」。', 'ok');
+    };
+
+    // 一键导入（全部）：按「分类|题目」前缀自动分类，无前缀的行跳过
+    function bankImportAll() {
+        var raw = $('paste').value.split('\n');
+        var parsed = [], skip = 0;
+        raw.forEach(function (line) {
+            var s = line.replace(/\r/g, '').trim();
+            if (!s) return;
+            var i = s.search(/[|｜]/);
+            if (i <= 0) { skip++; return; }
+            var head = s.slice(0, i).replace(/[|｜]/g, '').trim();
+            var rest = s.slice(i + 1).trim();
+            if (!ALIAS[head] || !rest) { skip++; return; }
+            parsed.push({ cat: ALIAS[head], q: rest });
+        });
+        if (!parsed.length) { msg('没有可自动分类的行：每行需要「分类|题目」格式（如：走心|你最爱我哪一点）。', 'err'); return; }
+        snapUndo('一键导入');
+        var added = 0, dup = 0, perCat = {};
+        parsed.forEach(function (it) {
+            var arr = workingOf(it.cat);
+            if (arr === null) { arr = builtinOf(it.cat).slice(); working[it.cat] = arr; }
+            var effSet = {};
+            effectiveOf(it.cat).forEach(function (q) { effSet[q] = 1; });
+            if (arr.indexOf(it.q) >= 0 || effSet[it.q]) { dup++; return; }
+            arr.push(it.q);
+            added++;
+            perCat[it.cat] = (perCat[it.cat] || 0) + 1;
+        });
+        if (!added) { if (undoStack.length) undoStack.pop(); refresh(); msg('没有新增：' + dup + ' 题都已存在' + (skip ? ('，跳过无前缀行 ' + skip) : '') + '。', 'gray'); return; }
+        dirty = true;
+        $('paste').value = '';
+        pasteIsAuto = true;
+        refresh();
+        var detail = CATS.filter(function (c) { return perCat[c.id]; }).map(function (c) { return c.name.split('').slice(0, 2).join('') + ' +' + perCat[c.id]; }).join('，');
+        msg('✅ 一键导入 ' + added + ' 题（' + detail + '）' + (dup ? ('，重复跳过 ' + dup) : '') + (skip ? ('，无前缀跳过 ' + skip) : '') + '。记得保存。', 'ok');
+    }
+    window.bankReplace = function () {
+        var items = parsePaste();
+        if (!items.length) { msg('粘贴区是空的：一行一题贴进来～', 'err'); return; }
+        snapUndo('替换' + catName(selCat));
+        working[selCat] = [];
+        var added = 0, other = 0;
+        items.forEach(function (it) {
+            if (it.cat !== selCat) { other++; }
+            var arr = workingOf(it.cat);
+            if (arr === null) { arr = builtinOf(it.cat).slice(); working[it.cat] = arr; }
+            if (arr.indexOf(it.q) >= 0) return;
+            arr.push(it.q);
+            added++;
+        });
+        dirty = true;
+        $('paste').value = '';
+        pasteIsAuto = true;
+        refresh();
+        showCatInTextarea(false);
+        msg('♻️ 所选分类已替换（共 ' + added + ' 题' + (other ? ('，其中 ' + other + ' 题按前缀归入了其他分类') : '') + '）。记得保存。', 'ok');
+    };
+    window.bankClearCat = function () {
+        if (!confirm('清空「' + catName(selCat) + '」？保存后抽题时该分类将没有题目。')) return;
+        snapUndo('清空' + catName(selCat));
+        working[selCat] = [];
+        dirty = true;
+        refresh();
+        msg('🧹 已清空「' + catName(selCat) + '」（还没保存）。', 'ok');
+    };
+    window.bankRestoreCat = function () {
+        snapUndo('恢复内置' + catName(selCat));
+        delete working[selCat];
+        dirty = true;
+        refresh();
+        msg('↩️ 「' + catName(selCat) + '」已改为使用内置题库（保存后生效）。', 'ok');
+    };
+    // 当前视图展示：全部 = 全量带前缀；单分类 = 该分类纯题目
+    function showCatInTextarea(withSnap) {
+        var lines = [];
+        if (selCat === 'all') {
+            CATS.forEach(function (c) {
+                effectiveOf(c.id).forEach(function (q) { lines.push(c.name + '|' + q); });
+            });
+        } else {
+            effectiveOf(selCat).forEach(function (q) { lines.push(q); });
+        }
+        if (withSnap) snapUndo('查看/导出' + (selCat === 'all' ? '全部' : catName(selCat)));
+        $('paste').value = lines.join('\n');
+        pasteIsAuto = true;
+        refresh();
+    }
+
+    window.bankExport = function () {
+        if (!pasteIsAuto && $('paste').value.trim()) {
+            if (!confirm('粘贴区有未处理的内容，查看/导出会覆盖它。继续？')) return;
+        }
+        showCatInTextarea(true);
+        var label = (selCat === 'all') ? '全部' : catName(selCat);
+        msg('📋 已展示「' + label + '」共 ' + $('paste').value.split('\n').length + ' 题。可直接编辑后用「替换所选分类」保存修改；要粘贴新题请先清空粘贴区。', 'gray');
+    };
+
+    window.bankClearPaste = function () {
+        snapUndo('清空粘贴区');
+        $('paste').value = '';
+        pasteIsAuto = true;
+        refresh();
+        msg('🧹 粘贴区已清空，可以贴新题了（可撤销）。', 'gray');
+    };
+
+    window.bankUndo = function () {
+        if (!undoStack.length) { msg('没有可撤销的操作了。', 'gray'); return; }
+        var s = undoStack.pop();
+        working = s.working;
+        selCat = s.selCat;
+        dirty = s.dirty;
+        $('paste').value = s.paste || '';
+        pasteIsAuto = false;
+        refresh();
+        msg('↩️ 已撤销：' + s.label + '（还没保存到云端）', 'ok');
+    };
+
+    window.bankUndoPublish = function () {
+        if (!lastPublish || !window.LiziGW || !window.LiziGW.put) { msg('没有可撤回的发布。', 'gray'); return; }
+        if (!confirm('撤回本次发布？云端题库将恢复到上一版内容（版本号继续+1）。')) return;
+        busy(true); msg('撤回中…', 'gray');
+        var redo = cur ? JSON.parse(JSON.stringify(cur)) : null;
+        var doc = JSON.parse(JSON.stringify(lastPublish));
+        doc.version = ((cur && cur.version) || 0) + 1;
+        doc.updatedAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
+        window.LiziGW.put(BANK_PATH, doc).then(function () {
+            lastPublish = redo;
+            try { localStorage.setItem('lizi_tiku_prevdoc', JSON.stringify({ doc: redo })); } catch (e) { }
+            cur = doc;
+            working = JSON.parse(JSON.stringify(doc.qb || {}));
+            dirty = false;
+            refresh();
+            msg('⏪ 已撤回：云端现在是 v' + doc.version + '（内容为上一版）。', 'ok');
+        }).catch(function (e) {
+            msg('撤回失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { busy(false); });
+    };
+    window.bankSave = function () {
+        if (!window.LiziGW || !window.LiziGW.put) { msg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        var total = 0;
+        CATS.forEach(function (c) { total += effectiveOf(c.id).length; });
+        if (total === 0) { msg('整个题库是空的，至少留一道题（或恢复内置）。', 'err'); return; }
+        if (!confirm('保存到云端？两人手机下次打开真心话就会用新题库。')) return;
+        busy(true); msg('保存中…', 'gray');
+        var doc = {
+            version: ((cur && cur.version) || 0) + 1,
+            updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+            qb: working
+        };
+        window.LiziGW.put(BANK_PATH, doc).then(function () {
+            cur = doc;
+            dirty = false;
+            refresh();
+            msg('✅ 已保存 v' + doc.version + '。两人手机下次进入「真心话说一说」自动生效（正在开着的话，重新进一次）。', 'ok');
+        }).catch(function (e) {
+            msg('保存失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在放行名单，请用 tcloudbaseapp.com 域名打开）' : ''), 'err');
+        }).finally(function () { busy(false); });
+    };
+
+    function load() {
+        if (!window.LiziGW || !window.LiziGW.get) { msg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        try { var pv = JSON.parse(localStorage.getItem('lizi_tiku_prevdoc') || 'null'); lastPublish = (pv && pv.doc) ? pv.doc : null; } catch (e) { lastPublish = null; }
+        busy(true); msg('读取中…', 'gray');
+        window.LiziGW.get(BANK_PATH).then(function (o) {
+            cur = o || null;
+            working = (o && o.qb && typeof o.qb === 'object') ? JSON.parse(JSON.stringify(o.qb)) : {};
+            refresh();
+            msg(o ? '已读取云端题库 v' + (o.version || 0) + '。' : '云端还没有题库，当前应用使用内置 300 题；保存后将开始云端覆盖。', o ? 'ok' : 'gray');
+        }).catch(function (e) {
+            msg('读取失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在放行名单）' : ''), 'err');
+        }).finally(function () { busy(false); });
+    }
+
+    function tryUnlock() {
+        if (normPin($('pin').value) === normPin(PIN)) {
+            try { sessionStorage.setItem('lizi_tiku_ok', '1'); } catch (e) { }
+            $('pinView').hidden = true;
+            $('panel').hidden = false;
+            load();
+        } else {
+            $('pinMsg').textContent = '口令不对，再想想～（会忽略大小写/空格）';
+            $('pin').value = '';
+        }
+    }
+    window.__liziTikuUnlock = tryUnlock;
+    $('pinBtn').addEventListener('click', tryUnlock);
+    $('pin').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryUnlock(); });
+    $('paste').addEventListener('input', function () { pasteIsAuto = false; }); // 用户手动改过粘贴区，切视图前要提醒
+
+    var ok = false;
+    try { ok = sessionStorage.getItem('lizi_tiku_ok') === '1'; } catch (e) { }
+    if (ok) { $('pinView').hidden = true; $('panel').hidden = false; load(); }
+    else { $('pinView').hidden = false; $('panel').hidden = true; }
+})();
+</script>
+</body>
+</html>

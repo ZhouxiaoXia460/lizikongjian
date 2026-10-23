@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 chcp 65001 >nul
 cd /d "%~dp0"
 echo.
@@ -23,6 +23,20 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+echo [3b] 部署 notice.js / admin.html（公告功能）...
+call tcb hosting deploy notice.js notice.js -e kongjian-d9gplvfce4e66ddb4
+if errorlevel 1 echo ⚠ notice.js 部署失败（公告弹窗不可用）
+call tcb hosting deploy admin.html admin.html -e kongjian-d9gplvfce4e66ddb4
+if errorlevel 1 echo ⚠ admin.html 部署失败（公告设置页不可用）
+call tcb hosting deploy admin-gateway.js admin-gateway.js -e kongjian-d9gplvfce4e66ddb4
+if errorlevel 1 echo ⚠ admin-gateway.js 部署失败（设置页无法读写云端）
+echo [3c] 部署题库设置（truth-bank.js / truth-admin.html / 图标）...
+call tcb hosting deploy truth-bank.js truth-bank.js -e kongjian-d9gplvfce4e66ddb4
+if errorlevel 1 echo ⚠ truth-bank.js 部署失败（云题库加载不可用，应用自动用内置题库）
+call tcb hosting deploy truth-admin.html truth-admin.html -e kongjian-d9gplvfce4e66ddb4
+if errorlevel 1 echo ⚠ truth-admin.html 部署失败（题库设置页不可用）
+call tcb hosting deploy truth-icon.png truth-icon.png -e kongjian-d9gplvfce4e66ddb4
+if errorlevel 1 echo ⚠ truth-icon.png 部署失败（iOS 图标缺失）
 echo.
 echo [4/6] 部署 kongjian.html ...
 call tcb hosting deploy sw.js sw.js -e kongjian-d9gplvfce4e66ddb4

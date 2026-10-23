@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>栗子公告设置</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="栗子公告">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="admin-icon.png">
+<style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+        background: linear-gradient(160deg, #f7ede1, #f3e3cd);
+        font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .card {
+        width: 100%; max-width: 400px; background: #fffaf2; border-radius: 18px;
+        box-shadow: 0 16px 44px rgba(80, 50, 20, .18); padding: 22px 20px;
+    }
+    h1 { margin: 0 0 4px; font-size: 20px; color: #5b3a1e; }
+    .sub { margin: 0 0 18px; font-size: 12.5px; color: #a58a6b; }
+    label { display: block; font-size: 13.5px; color: #6b4a2b; font-weight: 600; margin: 14px 0 6px; }
+    .hint { font-weight: 400; color: #b09a7d; font-size: 12px; }
+    input, textarea {
+        width: 100%; border: 1.5px solid #e2cbaa; border-radius: 12px; background: #fff;
+        padding: 11px 12px; font-size: 14.5px; color: #4a331c; font-family: inherit; outline: none;
+    }
+    input:focus, textarea:focus { border-color: #b9804b; }
+    textarea { min-height: 140px; resize: vertical; line-height: 1.65; }
+    button {
+        border: 0; border-radius: 12px; padding: 12px 0; font-size: 15px; font-weight: 600;
+        cursor: pointer; font-family: inherit; width: 100%; margin-top: 10px;
+        background: #efe3d2; color: #6b4a2b;
+    }
+    button:disabled { opacity: .55; }
+    button.primary { background: linear-gradient(135deg, #b9804b, #8b5a2b); color: #fff; box-shadow: 0 4px 12px rgba(139, 90, 43, .35); }
+    .row { display: flex; gap: 10px; }
+    .row button { flex: 1; margin-top: 10px; }
+    .cur {
+        font-size: 13px; color: #6b4a2b; background: #f6ead8; border-radius: 10px;
+        padding: 10px 12px; line-height: 1.6; word-break: break-all;
+    }
+    .msg { font-size: 13.5px; min-height: 18px; margin: 12px 0 0; line-height: 1.55; word-break: break-all; }
+    .ok { color: #2e7d32; } .err { color: #c0392b; } .gray { color: #8a7358; }
+    #pinView input { text-align: center; letter-spacing: 3px; font-size: 17px; }
+</style>
+</head>
+<body>
+    <div id="pinView" class="card" hidden>
+        <h1>🌰 栗子公告设置</h1>
+        <p class="sub">仅空间主人使用 · 请输入管理口令（小写字母+数字，打错能看见）</p>
+        <input id="pin" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="管理口令">
+        <button id="pinBtn" class="primary" onclick="window.__liziUnlock &amp;&amp; window.__liziUnlock()">解 锁</button>
+        <p id="pinMsg" class="msg err"></p>
+    </div>
+
+    <div id="panel" class="card" hidden>
+        <h1>🌰 栗子公告设置</h1>
+        <p class="sub">发布后：所有设备下次进入时各弹一次，之后不再打扰</p>
+        <div id="cur" class="cur">读取中…</div>
+        <label>公告标题 <span class="hint">（≤60字）</span></label>
+        <input id="title" maxlength="60" placeholder="例如：欢迎来到栗子空间">
+        <label>公告正文 <span class="hint">（≤3000字，支持换行）</span></label>
+        <textarea id="content" maxlength="3000" placeholder="写点什么告诉进入空间的人…"></textarea>
+        <button id="pubBtn" class="primary">发布并启用（版本+1，设备会再弹一次）</button>
+        <div class="row">
+            <button id="offBtn">停用公告</button>
+            <button id="reBtn">重新读取</button>
+        </div>
+        <p id="msg" class="msg gray"></p>
+    </div>
+
+<script src="admin-gateway.js?v=1" defer></script>
+<script>
+(function () {
+    'use strict';
+    // ===== 管理口令（防误触/防随手改，改这里即可；输入时自动忽略大小写/空格/全角）=====
+    var PIN = 'lizi666';
+
+    var $ = function (id) { return document.getElementById(id); };
+    var cur = null;
+    function gwOk() {
+        return (typeof window.AdminGW !== 'undefined') && !!window.AdminGW.fetchCurrent && !!window.AdminGW.saveNotice;
+    }
+
+    function msg(text, cls) {
+        var el = $('msg');
+        el.textContent = text || '';
+        el.className = 'msg ' + (cls || 'gray');
+    }
+    function busy(on) {
+        ['pubBtn', 'offBtn', 'reBtn'].forEach(function (id) { $(id).disabled = !!on; });
+    }
+
+    // 口令归一化：去空白 + 全角转半角 + 转小写
+    function normPin(s) {
+        return String(s || '')
+            .replace(/\s+/g, '')
+            .replace(/[\uFF01-\uFF5E]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+            .toLowerCase();
+    }
+
+    function renderCurrent(n) {
+        if (!n) {
+            $('cur').textContent = '云端还没有公告。填好标题和正文，点「发布并启用」即可创建第一条公告。';
+            return;
+        }
+        var st = (n.enabled === false) ? '⛔ 已停用（设备不会弹窗）' : '✅ 启用中';
+        $('cur').textContent = '当前：' + st +
+            ' · 版本 v' + (typeof n.version === 'number' ? n.version : '?') +
+            (n.updatedAt ? (' · 更新于 ' + n.updatedAt) : '') +
+            '\n标题：' + (n.title || '（无）') +
+            '\n正文：' + (n.content ? (n.content.length > 80 ? n.content.slice(0, 80) + '…' : n.content) : '（无）');
+    }
+
+    function load() {
+        if (!gwOk()) { msg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        busy(true); msg('读取中…', 'gray');
+        window.AdminGW.fetchCurrent().then(function (n) {
+            cur = n || { title: '', content: '', enabled: true, version: 0 };
+            $('title').value = cur.title || '';
+            $('content').value = cur.content || '';
+            renderCurrent(n);
+            msg(n ? '已读取当前公告。' : '云端还没有公告，发布后将创建。', n ? 'ok' : 'gray');
+        }).catch(function (e) {
+            msg('读取失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在云环境放行名单，请用 tcloudbaseapp.com 域名打开）' : ''), 'err');
+        }).finally(function () { busy(false); });
+    }
+
+    function publish() {
+        var title = $('title').value.trim();
+        var content = $('content').value.trim();
+        if (!title && !content) { msg('标题和正文不能都为空。', 'err'); return; }
+        if (!gwOk()) { msg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        busy(true); msg('发布中…', 'gray');
+        var base = cur || { version: 0 };
+        var doc = {
+            title: title,
+            content: content,
+            enabled: true,
+            version: (typeof base.version === 'number' ? base.version : 0) + 1,
+            updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
+        };
+        window.AdminGW.saveNotice(doc).then(function () {
+            cur = doc;
+            renderCurrent(doc);
+            msg('✅ 已发布 v' + doc.version + '。所有设备下次进入栗子空间时会各弹一次。', 'ok');
+        }).catch(function (e) {
+            msg('发布失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { busy(false); });
+    }
+
+    function disable() {
+        if (!cur || !cur.version) { msg('云端还没有公告，无需停用。', 'err'); return; }
+        if (!gwOk()) { msg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        busy(true); msg('停用中…', 'gray');
+        var doc = Object.assign({}, cur, { enabled: false, updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16) });
+        window.AdminGW.saveNotice(doc).then(function () {
+            cur = doc;
+            renderCurrent(doc);
+            msg('已停用：设备进入时不再弹窗（版本不变）。', 'ok');
+        }).catch(function (e) {
+            msg('停用失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { busy(false); });
+    }
+
+    // ===== 口令门（sessionStorage：每次重新打开都要输一次）=====
+    function tryUnlock() {
+        if (normPin($('pin').value) === normPin(PIN)) {
+            try { sessionStorage.setItem('lizi_admin_ok', '1'); } catch (e) { }
+            $('pinView').hidden = true;
+            $('panel').hidden = false;
+            load();
+        } else {
+            $('pinMsg').textContent = '口令不对，再想想～（会忽略大小写/空格，字母请用英文键盘）';
+            $('pin').value = '';
+        }
+    }
+
+    window.__liziUnlock = tryUnlock;
+    $('pinBtn').addEventListener('click', tryUnlock);
+    $('pin').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryUnlock(); });
+    $('pubBtn').addEventListener('click', publish);
+    $('offBtn').addEventListener('click', disable);
+    $('reBtn').addEventListener('click', load);
+
+    var ok = false;
+    try { ok = sessionStorage.getItem('lizi_admin_ok') === '1'; } catch (e) { }
+    if (ok) { $('pinView').hidden = true; $('panel').hidden = false; load(); }
+    else { $('pinView').hidden = false; $('panel').hidden = true; }
+})();
+</script>
+</body>
+</html>

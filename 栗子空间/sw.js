@@ -4,7 +4,7 @@
 //   · 同源静态资源（图标/清单等）：缓存优先
 //   · 腾讯云 CDN 的 SDK 脚本：缓存优先后台刷新（离线时仍能初始化页面骨架）
 //   · 云端 API / 其它第三方请求：一律直连网络，不做任何缓存（不碰业务数据）
-const CACHE = 'lizikongjian-v4';
+const CACHE = 'lizikongjian-v5';
 const CORE = [
     './',
     './index.html',
@@ -45,7 +45,7 @@ self.addEventListener('fetch', function (e) {
     // 页面导航：网络优先，离线回退缓存
     if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
         e.respondWith(
-            fetch(req).then(function (res) {
+            fetch(req, { cache: 'no-cache' }).then(function (res) {
                 const cp = res.clone();
                 caches.open(CACHE).then(function (c) { c.put(req, cp); });
                 return res;

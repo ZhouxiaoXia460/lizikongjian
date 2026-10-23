@@ -12,6 +12,7 @@ var CloudSync = {
 };
 var _netBytesAdd = function(){};
 var STORAGE_KEY = 'lizi_space_final';
+var relationship = require('./_relationship.min.js'); // 辈分引擎（与页面内联同源）
 var saveCalls = 0;
 function saveData(){ saveCalls++; window.__liziLastSaveAt = Date.now(); localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
 function showToast(){}
@@ -604,6 +605,346 @@ var appData;
     }
 
 
+// ==================== 离线工具箱（🧰 工具库） ====================
+    // 纯前端本地计算，零网络请求；函数均为全局（onclick 直调），页面常驻内存即用即走。
+
+    // —— 工具箱导航 ——
+    function openTools() { try { stopAllGames(); } catch (e) {} showPage('toolsPage'); }
+    function closeTools() { stopToolPick(); switchTab('home'); }
+    function closeToolPage() { stopToolPick(); showPage('toolsPage'); }
+
+    // ============ ① 辈分计算器 ============
+    let kinGender = 'male'; // 我的性别（引擎 sex 参数：老公/老婆链与自身指代需要）
+    const KIN_NAME = { f: '爸爸', m: '妈妈', ob: '哥哥', lb: '弟弟', os: '姐姐', ls: '妹妹', s: '儿子', d: '女儿', h: '老公', w: '老婆' };
+    const KIN_ALIAS = {
+        '爸爸': '爸爸', '爸': '爸爸', '爹': '爸爸', '父亲': '爸爸', '老爸': '爸爸',
+        '妈妈': '妈妈', '妈': '妈妈', '娘': '妈妈', '母亲': '妈妈', '老妈': '妈妈',
+        '哥哥': '哥哥', '哥': '哥哥', '兄': '哥哥', '兄长': '哥哥',
+        '弟弟': '弟弟', '弟': '弟弟',
+        '姐姐': '姐姐', '姐': '姐姐',
+        '妹妹': '妹妹', '妹': '妹妹',
+        '儿子': '儿子', '儿': '儿子',
+        '女儿': '女儿',
+        '老公': '老公', '丈夫': '老公', '先生': '老公',
+        '老婆': '老婆', '妻子': '老婆', '太太': '老婆'
+    };
+    const KIN_QUICK = {
+        '爷爷': '爸爸的爸爸', '外公': '妈妈的爸爸', '舅舅': '妈妈的哥哥', '姨妈': '妈妈的姐姐',
+        '婆婆': '老公的妈妈', '岳父': '老婆的爸爸'
+    };
+
+    function openToolKin() { showPage('toolKinPage'); kinRecalc('input'); }
+
+    // 口语词归一：把输入拆成引擎认识的标准称呼词
+    function _kinParse(text) {
+        const parts = String(text || '').split('的').map(s => s.trim()).filter(Boolean);
+        const words = [];
+        for (let i = 0; i < parts.length; i++) {
+            const w = KIN_ALIAS[parts[i]];
+            if (!w) return null; // 有不认识的词
+            words.push(w);
+        }
+        return words;
+    }
+
+    // 引擎换算：任意长度关系链算法推导（内联 relationship.js，纯本地计算）
+    // 返回 { ok, titles[], self, chainText }：titles 为可能称呼（可多个），self 表示链会绕回自己
+    function _kinCompute(raw, gender) {
+        const words = _kinParse(raw);
+        if (!words) return { ok: false, titles: [], self: false, chainText: '' };
+        const chainText = words.join('的');
+        const call = function (isFemale) {
+            let r = [];
+            try { r = relationship({ text: chainText, sex: isFemale ? 0 : 1 }) || []; } catch (e) { r = []; }
+            r = (r || []).filter(t => t && String(t).trim());
+            const self = r.indexOf('自己') >= 0 || r.indexOf('我') >= 0;
+            return { titles: r.filter(t => t !== '自己' && t !== '我'), self: self };
+        };
+        const wantFemale = gender === 'female';
+        let r = call(wantFemale);
+        if (!r.titles.length && !r.self && (words.indexOf('老公') >= 0 || words.indexOf('老婆') >= 0)) {
+            r = call(!wantFemale); // 链里有配偶词但性别没对上：自动换一边再算，省得用户困惑
+        }
+        return { ok: true, titles: r.titles, self: r.self, chainText: chainText };
+    }
+
+    function kinSyncGenderBtns() {
+        const m = document.getElementById('kinGenderMale'), f = document.getElementById('kinGenderFemale');
+        if (!m || !f) return;
+        const on = 'flex-1 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-[#FFE8CC] to-[#FFF4E5] border border-[#D9A56E] text-[#85532E] shadow-sm transition-all active:scale-95';
+        const off = 'flex-1 py-2.5 rounded-xl text-sm font-medium bg-white border border-[#F5DEC2] text-[#B08968] transition-all active:scale-95';
+        m.className = kinGender === 'male' ? on : off;
+        f.className = kinGender === 'female' ? on : off;
+    }
+
+    function kinSetGender(g) {
+        kinGender = g;
+        kinSyncGenderBtns();
+        kinRecalc('gender');
+    }
+
+    function kinClickRel(word) {
+        const inp = document.getElementById('kinInput');
+        const v = (inp.value || '').trim();
+        inp.value = v ? (v + '的' + word) : word;
+        kinRecalc('click');
+    }
+
+    function kinBackspace() {
+        const inp = document.getElementById('kinInput');
+        const parts = (inp.value || '').split('的').map(s => s.trim()).filter(Boolean);
+        parts.pop();
+        inp.value = parts.join('的');
+        kinRecalc('input');
+    }
+
+    function kinClearChain() {
+        document.getElementById('kinInput').value = '';
+        kinRecalc('input');
+    }
+
+    function kinQuick(name) {
+        const text = KIN_QUICK[name];
+        if (!text) return;
+        document.getElementById('kinInput').value = text;
+        kinRecalc('input');
+    }
+
+    function kinRecalc() {
+        const emptyEl = document.getElementById('kinResultEmpty');
+        const boxEl = document.getElementById('kinResultBox');
+        const titleEl = document.getElementById('kinResultTitle');
+        const chainEl = document.getElementById('kinResultChain');
+        const noteEl = document.getElementById('kinResultNote');
+        const copyEl = document.getElementById('kinCopyBtn');
+        if (!emptyEl || !boxEl) return;
+        const raw = (document.getElementById('kinInput').value || '').trim();
+        if (!raw) {
+            emptyEl.classList.remove('hidden'); boxEl.classList.add('hidden');
+            return;
+        }
+        const r = _kinCompute(raw, kinGender);
+        emptyEl.classList.add('hidden'); boxEl.classList.remove('hidden');
+        if (!r.ok) {
+            titleEl.textContent = '暂未找到对应称呼';
+            titleEl.className = 'text-xl font-semibold text-[#B08968]';
+            chainEl.textContent = '有认不出的称呼词，试试点选组合或换个说法';
+            noteEl.classList.add('hidden');
+            copyEl.classList.add('hidden');
+            return;
+        }
+        if (!r.titles.length && r.self) {
+            titleEl.textContent = '这是你自己呀 😄';
+            titleEl.className = 'text-2xl font-bold text-[#A66D3A]';
+            chainEl.textContent = '关系链绕回了自己，换个叫法试试';
+            noteEl.classList.add('hidden');
+            copyEl.classList.add('hidden');
+            return;
+        }
+        if (!r.titles.length) {
+            titleEl.textContent = '暂未找到对应称呼';
+            titleEl.className = 'text-xl font-semibold text-[#B08968]';
+            chainEl.textContent = '试试简化关系表述，或更换基础关系组合';
+            noteEl.classList.add('hidden');
+            copyEl.classList.add('hidden');
+            return;
+        }
+        titleEl.textContent = r.titles.join('／');
+        titleEl.className = 'text-3xl font-bold text-[#5E3A20] tracking-wide break-all';
+        chainEl.textContent = '对应关系：' + r.chainText;
+        const multi = r.titles.length > 1;
+        noteEl.textContent = multi ? '按年龄大小选择称呼' : '';
+        noteEl.classList.toggle('hidden', !multi);
+        copyEl.classList.remove('hidden');
+    }
+
+    function _toolCopyText(text, done) {
+        const ok = function () { showToast('已复制，发给TA看看吧'); };
+        const cb = (typeof done === 'function') ? done : ok;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(cb).catch(function () { _toolCopyFallback(text, cb); });
+        } else _toolCopyFallback(text, cb);
+    }
+    function _toolCopyFallback(text, cb) {
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (cb) cb(); else showToast('已复制，发给TA看看吧');
+        } catch (e) { showToast('复制失败，请手动长按复制'); }
+    }
+    function kinCopy() {
+        const title = (document.getElementById('kinResultTitle').textContent || '').trim();
+        if (!title || title === '暂未找到对应称呼' || title === '这是你自己呀 😄') { showToast('请先计算出称呼再复制'); return; }
+        _toolCopyText(title);
+    }
+
+    // ============ ② 吃什么决定器 ============
+    let _pickTimer = null;
+    function openToolPick() { showPage('toolPickPage'); renderPickChips(); }
+    function stopToolPick() { if (_pickTimer) { clearInterval(_pickTimer); _pickTimer = null; } }
+    function _pickOptions() {
+        return (document.getElementById('pickOptions').value || '').split('\n').map(s => s.trim()).filter(Boolean);
+    }
+    function renderPickChips() {
+        const wrap = document.getElementById('pickChips');
+        if (!wrap) return;
+        stopToolPick();
+        const opts = _pickOptions();
+        wrap.innerHTML = opts.length
+            ? opts.map((o, i) => '<span id="pickChip' + i + '" class="memo-chip transition-all">' + escapeHtml(o) + '</span>').join('')
+            : '<span class="text-xs text-[#C9B28F]">先在上方写几个选项吧 🌰</span>';
+    }
+    function startPick() {
+        if (_pickTimer) return;
+        const opts = _pickOptions();
+        if (!opts.length) { showToast('先填几个选项吧'); return; }
+        const resultBox = document.getElementById('pickResult');
+        resultBox.classList.add('hidden');
+        let elapsed = 0, idx = Math.floor(Math.random() * opts.length);
+        const total = 1400 + Math.random() * 600, step = 70;
+        _pickTimer = setInterval(function () {
+            opts.forEach(function (o, i) { const el = document.getElementById('pickChip' + i); if (el) el.classList.remove('pick-hot'); });
+            const el = document.getElementById('pickChip' + idx);
+            if (el) el.classList.add('pick-hot');
+            idx = (idx + 1) % opts.length;
+            elapsed += step;
+            if (elapsed >= total) {
+                stopToolPick();
+                const finalIdx = Math.floor(Math.random() * opts.length);
+                opts.forEach(function (o, i) { const el2 = document.getElementById('pickChip' + i); if (el2) el2.classList.remove('pick-hot'); });
+                const fel = document.getElementById('pickChip' + finalIdx);
+                if (fel) fel.classList.add('pick-hot');
+                document.getElementById('pickResultText').textContent = opts[finalIdx];
+                resultBox.classList.remove('hidden');
+            }
+        }, step);
+    }
+
+    // ============ ③ 人均计算器 ============
+    function openToolSplit() { showPage('toolSplitPage'); calcAA(); }
+    function _aaPer(total, count) {
+        if (!(total > 0) || !(count >= 1)) return null;
+        return Math.floor(total * 100 / count) / 100; // 分向下取整，多出的算抹零
+    }
+    function calcAA() {
+        const total = parseFloat(document.getElementById('aaTotal').value);
+        const count = parseInt(document.getElementById('aaCount').value, 10);
+        const res = document.getElementById('aaResult'), note = document.getElementById('aaNote'), copyBtn = document.getElementById('aaCopyBtn');
+        const per = _aaPer(total, count);
+        if (per === null) {
+            res.textContent = '¥ --'; note.textContent = '';
+            copyBtn.classList.add('hidden');
+            return;
+        }
+        const rest = Math.round(total * 100 - per * 100 * count) / 100;
+        res.textContent = '¥ ' + per.toFixed(2);
+        note.textContent = rest > 0 ? ('按人均收 ' + (per * count).toFixed(2) + ' 元，多出 ' + rest.toFixed(2) + ' 元可以抹零～') : '刚好分完，一分不差 👌';
+        copyBtn.classList.remove('hidden');
+    }
+    function aaStep(d) {
+        const el = document.getElementById('aaCount');
+        const v = Math.max(1, (parseInt(el.value, 10) || 1) + d);
+        el.value = v;
+        calcAA();
+    }
+    function aaCopy() {
+        const total = parseFloat(document.getElementById('aaTotal').value);
+        const count = parseInt(document.getElementById('aaCount').value, 10);
+        const per = _aaPer(total, count);
+        if (per === null) { showToast('先填总金额和人数'); return; }
+        _toolCopyText('人均 ¥' + per.toFixed(2) + '（共 ' + count + ' 人 · 合计 ¥' + total.toFixed(2) + '）');
+    }
+
+    // ============ ④ 金额大写 ============
+    function openToolRmb() { showPage('toolRmbPage'); renderRmb(); }
+    function _rmbUpper(num) {
+        if (typeof num !== 'number' || !isFinite(num)) return null;
+        if (num < 0) { const neg = _rmbUpper(-num); return neg ? '负' + neg : null; }
+        if (num > 999999999999.99) return null; // 超出支持范围（万亿级）
+        const n = Math.round(num * 100);
+        const yuan = Math.floor(n / 100), jiao = Math.floor((n % 100) / 10), fen = n % 10;
+        const DIG = '零壹贰叁肆伍陆柒捌玖', U1 = ['', '拾', '佰', '仟'];
+        function section(x) {
+            let s = '', zero = false;
+            for (let i = 3; i >= 0; i--) {
+                const d = Math.floor(x / Math.pow(10, i)) % 10;
+                if (d === 0) { if (s) zero = true; }
+                else { if (zero) { s += '零'; zero = false; } s += DIG[d] + U1[i]; }
+            }
+            return s;
+        }
+        if (yuan === 0 && jiao === 0 && fen === 0) return '零元整';
+        let out = '';
+        if (yuan > 0) {
+            const yi = Math.floor(yuan / 100000000), wan = Math.floor((yuan % 100000000) / 10000), ge = yuan % 10000;
+            if (yi > 0) out += section(yi) + '亿';
+            if (wan > 0) { out += section(wan) + '万'; if (ge > 0 && ge < 1000) out += '零'; }
+            else if (yi > 0 && ge > 0 && ge < 1000) out += '零';
+            if (ge > 0) out += section(ge);
+            out += '元';
+        }
+        if (jiao > 0) out += DIG[jiao] + '角';
+        else if (yuan > 0 && fen > 0) out += '零';
+        if (fen > 0) out += DIG[fen] + '分';
+        if (fen === 0) out += '整';
+        return out;
+    }
+    function renderRmb() {
+        const emptyEl = document.getElementById('rmbEmpty'), boxEl = document.getElementById('rmbBox');
+        const outEl = document.getElementById('rmbOut'), copyBtn = document.getElementById('rmbCopyBtn');
+        if (!boxEl) return;
+        const raw = document.getElementById('rmbIn').value;
+        const title = _rmbUpper(parseFloat(raw));
+        if (raw === '' || title === null) {
+            emptyEl.classList.remove('hidden'); boxEl.classList.add('hidden');
+            if (raw !== '' && title === null) { emptyEl.classList.add('hidden'); boxEl.classList.remove('hidden'); outEl.textContent = '金额超出支持范围（万亿级以下）'; outEl.className = 'text-base font-semibold text-[#B08968]'; copyBtn.classList.add('hidden'); }
+            return;
+        }
+        emptyEl.classList.add('hidden'); boxEl.classList.remove('hidden');
+        outEl.textContent = title;
+        outEl.className = 'text-xl font-bold text-[#5E3A20] tracking-wide break-all leading-relaxed';
+        copyBtn.classList.remove('hidden');
+    }
+    function rmbCopy() {
+        const t = (document.getElementById('rmbOut').textContent || '').trim();
+        if (!t || t.indexOf('超出') >= 0) { showToast('请先输入金额'); return; }
+        _toolCopyText(t);
+    }
+
+    // ============ ⑤ BMI 计算 ============
+    function openToolBmi() { showPage('toolBmiPage'); calcBmi(); }
+    function _bmiOf(h, w) {
+        if (!(h > 0) || !(w > 0)) return null;
+        return w / Math.pow(h / 100, 2);
+    }
+    function calcBmi() {
+        const h = parseFloat(document.getElementById('bmiH').value);
+        const w = parseFloat(document.getElementById('bmiW').value);
+        const emptyEl = document.getElementById('bmiEmpty'), boxEl = document.getElementById('bmiBox');
+        const valEl = document.getElementById('bmiVal'), tagEl = document.getElementById('bmiTag'), noteEl = document.getElementById('bmiNote');
+        if (!boxEl) return;
+        const bmi = _bmiOf(h, w);
+        if (bmi === null || !isFinite(bmi)) {
+            emptyEl.classList.remove('hidden'); boxEl.classList.add('hidden');
+            return;
+        }
+        let cls, color, tip;
+        if (bmi < 18.5) { cls = '偏瘦'; color = '#7BA3D9'; tip = '有点轻啦，一起好好吃饭 🍚'; }
+        else if (bmi < 24) { cls = '正常'; color = '#4E7A4E'; tip = '刚刚好，继续保持～'; }
+        else if (bmi < 28) { cls = '偏胖'; color = '#C9862B'; tip = '稍微注意一点，多散散步 🚶'; }
+        else { cls = '肥胖'; color = '#EF5533'; tip = '要照顾好自己，规律作息一起运动 💪'; }
+        emptyEl.classList.add('hidden'); boxEl.classList.remove('hidden');
+        valEl.textContent = bmi.toFixed(1);
+        tagEl.textContent = cls;
+        tagEl.style.background = color + '22';
+        tagEl.style.color = color;
+        tagEl.style.border = '1px solid ' + color + '55';
+        noteEl.textContent = cls === '正常' ? ('健康体重范围：' + (18.5 * Math.pow(h / 100, 2)).toFixed(1) + ' ~ ' + (23.9 * Math.pow(h / 100, 2)).toFixed(1) + ' kg · ' + tip) : tip;
+    }
+    
 
 // ================= 场景断言 =================
 var failures = 0;
@@ -731,6 +1072,33 @@ ok(appData.activities.length === 2 && !appData.activities.some(a => a.id === 'a_
 mergeCloudSnapshot({ activities: [{ id: 'a_old2', userId: 'shizi', action: 'TA的旧动态', time: Date.now() - 9 * 86400000 }, { id: 'a_new2', userId: 'shizi', action: 'TA的新动态', time: Date.now() }] });
 ok(!appData.activities.some(a => a.id === 'a_old2'), '云端合并进来的过期动态就地清理（防旧快照反复带回）');
 ok(appData.activities.some(a => a.id === 'a_new2'), '云端新动态正常并入');
+
+console.log('[10] 离线工具：辈分计算器（relationship 算法引擎） + 金额大写');
+var _t = function (raw, g) { var r = _kinCompute(raw, g); return r.titles.join('／'); };
+ok(_t('哥哥的哥哥', 'male') === '哥哥', '哥哥的哥哥 → 哥哥');
+ok(_t('弟弟的哥哥', 'male') === '哥哥／弟弟', '弟弟的哥哥 → 哥哥／弟弟（排除自己）');
+ok(_kinCompute('弟弟的哥哥', 'male').self === true, '弟弟的哥哥识别出会绕回自己');
+ok(_t('爸爸的姐姐', 'male') === '大姑', '爸爸的姐姐 → 大姑');
+ok(_t('爸爸的姐姐的丈夫', 'male') === '大姑丈', '爸爸的姐姐的丈夫 → 大姑丈');
+ok(_t('妈妈的妈妈', 'male') === '外婆', '妈妈的妈妈 → 外婆');
+ok(_t('老公的妈妈', 'female') === '婆婆', '老公的妈妈 → 婆婆（我的性别=女）');
+ok(_t('老婆的弟弟', 'male') === '小舅子', '老婆的弟弟 → 小舅子');
+ok(_t('妈妈的姐姐的儿子', 'male') === '姨哥／姨弟', '姨妈的儿子 → 姨哥／姨弟');
+ok(_t('爸爸的哥哥的妻子', 'male') === '伯母', '伯伯的妻子 → 伯母');
+ok(_t('爸爸的爸爸的哥哥', 'male') === '伯公', '爷爷的哥哥 → 伯公');
+ok(_t('爸爸的妈妈的妈妈', 'male') === '曾外祖母', '爸爸的妈妈的妈妈 → 曾外祖母');
+ok(_t('丈夫的哥哥', 'female') === '大伯子', '丈夫的哥哥 → 大伯子');
+ok(_kinParse('爸爸的姐姐的丈夫').join('-') === '爸爸-姐姐-老公', '手动输入解析正确（丈夫归一为老公）');
+ok(_kinCompute('爸爸的姐姐的公公', 'male').ok === false, '不认识的词给引导文案不报错');
+ok(_rmbUpper(1234.56) === '壹仟贰佰叁拾肆元伍角陆分', '1234.56 → 壹仟贰佰叁拾肆元伍角陆分');
+ok(_rmbUpper(10) === '壹拾元整', '10 → 壹拾元整');
+ok(_rmbUpper(0.5) === '伍角整', '0.5 → 伍角整');
+ok(_rmbUpper(100.2) === '壹佰元贰角整', '100.2 → 壹佰元贰角整');
+ok(_rmbUpper(105.04) === '壹佰零伍元零肆分', '105.04 → 壹佰零伍元零肆分');
+ok(_rmbUpper(0) === '零元整', '0 → 零元整');
+ok(_rmbUpper(100000000) === '壹亿元整', '1亿 → 壹亿元整');
+ok(_rmbUpper(100000100) === '壹亿零壹佰元整', '100000100 → 壹亿零壹佰元整');
+ok(_rmbUpper(1000100) === '壹佰万零壹佰元整', '1000100 → 壹佰万零壹佰元整（万位后补零）');
 
 console.log('');
 if (failures) { console.log('❌ ' + failures + ' 项断言失败'); process.exit(1); }

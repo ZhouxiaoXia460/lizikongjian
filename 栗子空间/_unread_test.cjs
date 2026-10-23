@@ -27,6 +27,11 @@ const exitSync = slice(
     '// ==================== 退出时自动同步',
     '    async function manualCloudPull'
 );
+// 4) 离线工具箱（辈分计算器 / 金额大写等纯函数）
+const tools = slice(
+    '// ==================== 离线工具箱（🧰 工具库） ====================',
+    '// ==================== 离线工具箱结束 ===================='
+);
 
 const stubs = `
 var window = { __visitTabKey: null, __liziLastSaveAt: 0 };
@@ -42,6 +47,7 @@ var CloudSync = {
 };
 var _netBytesAdd = function(){};
 var STORAGE_KEY = 'lizi_space_final';
+var relationship = require('./_relationship.min.js'); // 辈分引擎（与页面内联同源）
 var saveCalls = 0;
 function saveData(){ saveCalls++; window.__liziLastSaveAt = Date.now(); localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
 function showToast(){}
@@ -176,11 +182,38 @@ mergeCloudSnapshot({ activities: [{ id: 'a_old2', userId: 'shizi', action: 'TA�
 ok(!appData.activities.some(a => a.id === 'a_old2'), '云端合并进来的过期动态就地清理（防旧快照反复带回）');
 ok(appData.activities.some(a => a.id === 'a_new2'), '云端新动态正常并入');
 
+console.log('[10] 离线工具：辈分计算器（relationship 算法引擎） + 金额大写');
+var _t = function (raw, g) { var r = _kinCompute(raw, g); return r.titles.join('／'); };
+ok(_t('哥哥的哥哥', 'male') === '哥哥', '哥哥的哥哥 → 哥哥');
+ok(_t('弟弟的哥哥', 'male') === '哥哥／弟弟', '弟弟的哥哥 → 哥哥／弟弟（排除自己）');
+ok(_kinCompute('弟弟的哥哥', 'male').self === true, '弟弟的哥哥识别出会绕回自己');
+ok(_t('爸爸的姐姐', 'male') === '大姑', '爸爸的姐姐 → 大姑');
+ok(_t('爸爸的姐姐的丈夫', 'male') === '大姑丈', '爸爸的姐姐的丈夫 → 大姑丈');
+ok(_t('妈妈的妈妈', 'male') === '外婆', '妈妈的妈妈 → 外婆');
+ok(_t('老公的妈妈', 'female') === '婆婆', '老公的妈妈 → 婆婆（我的性别=女）');
+ok(_t('老婆的弟弟', 'male') === '小舅子', '老婆的弟弟 → 小舅子');
+ok(_t('妈妈的姐姐的儿子', 'male') === '姨哥／姨弟', '姨妈的儿子 → 姨哥／姨弟');
+ok(_t('爸爸的哥哥的妻子', 'male') === '伯母', '伯伯的妻子 → 伯母');
+ok(_t('爸爸的爸爸的哥哥', 'male') === '伯公', '爷爷的哥哥 → 伯公');
+ok(_t('爸爸的妈妈的妈妈', 'male') === '曾外祖母', '爸爸的妈妈的妈妈 → 曾外祖母');
+ok(_t('丈夫的哥哥', 'female') === '大伯子', '丈夫的哥哥 → 大伯子');
+ok(_kinParse('爸爸的姐姐的丈夫').join('-') === '爸爸-姐姐-老公', '手动输入解析正确（丈夫归一为老公）');
+ok(_kinCompute('爸爸的姐姐的公公', 'male').ok === false, '不认识的词给引导文案不报错');
+ok(_rmbUpper(1234.56) === '壹仟贰佰叁拾肆元伍角陆分', '1234.56 → 壹仟贰佰叁拾肆元伍角陆分');
+ok(_rmbUpper(10) === '壹拾元整', '10 → 壹拾元整');
+ok(_rmbUpper(0.5) === '伍角整', '0.5 → 伍角整');
+ok(_rmbUpper(100.2) === '壹佰元贰角整', '100.2 → 壹佰元贰角整');
+ok(_rmbUpper(105.04) === '壹佰零伍元零肆分', '105.04 → 壹佰零伍元零肆分');
+ok(_rmbUpper(0) === '零元整', '0 → 零元整');
+ok(_rmbUpper(100000000) === '壹亿元整', '1亿 → 壹亿元整');
+ok(_rmbUpper(100000100) === '壹亿零壹佰元整', '100000100 → 壹亿零壹佰元整');
+ok(_rmbUpper(1000100) === '壹佰万零壹佰元整', '1000100 → 壹佰万零壹佰元整（万位后补零）');
+
 console.log('');
 if (failures) { console.log('❌ ' + failures + ' 项断言失败'); process.exit(1); }
 else { console.log('✅ 全部断言通过'); }`;
 
-const src = stubs + '\n' + core + '\n' + merge + '\n' + exitSync + '\n' + scenarios;
+const src = stubs + '\n' + core + '\n' + merge + '\n' + exitSync + '\n' + tools + '\n' + scenarios;
 const outFile = path.join(__dirname, '_unread_test_gen.cjs');
 fs.writeFileSync(outFile, src, 'utf8');
 require(outFile);
