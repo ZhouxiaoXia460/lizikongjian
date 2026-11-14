@@ -1,0 +1,90 @@
+    <!-- 绩点计算器 -->
+    <div id="toolGpaPage" class="page safe-bottom">
+        <div class="sticky top-0 sticky-header border-b border-[#F5DEC2] px-4 py-3.5 flex items-center justify-between z-10">
+            <button onclick="closeToolPage()" class="text-[#85532E] flex items-center gap-1 font-medium px-2 py-1.5 rounded-xl hover:bg-[#FFF4E5] transition-colors"><span>←</span> 工具箱</button>
+            <span class="font-semibold text-[#5E3A20] text-base">🎓 绩点计算器</span>
+            <span class="w-14"></span>
+        </div>
+        <div class="px-5 pt-5 pb-8 max-w-lg mx-auto">
+            <div class="card p-4 mb-4">
+                <div class="flex items-center justify-between mb-2.5">
+                    <p class="text-xs text-[#B08968]">每行一门课：科目 / 学分 / 成绩</p>
+                    <button onclick="gpaAddRow()" class="text-[11px] px-2.5 py-1 rounded-lg bg-[#FFF4E5] border border-[#F5DEC2] text-[#A66D3A] font-medium active:scale-95 transition-all">＋ 加一门</button>
+                </div>
+                <div class="flex gap-2 mb-1.5">
+                    <p class="flex-1 text-[10px] text-[#C9B28F] pl-0.5">科目（选填）</p>
+                    <p class="w-16 text-[10px] text-[#C9B28F] text-center">学分</p>
+                    <p class="w-16 text-[10px] text-[#C9B28F] text-center">成绩</p>
+                    <p class="w-7 text-[10px] text-[#C9B28F]"></p>
+                </div>
+                <div id="gpaRows"></div>
+                <p class="text-[10px] text-[#C9B28F] mt-1">成绩填分数（0-100）或等级：优 / 良 / 中 / 及格 / 不及格</p>
+            </div>
+            <div class="card p-6 text-center">
+                <div id="gpaEmpty">
+                    <div class="text-4xl opacity-40 mb-2">🌰</div>
+                    <p class="text-xs text-[#C9B28F]">把课程一行一行加进来，9 种口径一起算</p>
+                </div>
+                <div id="gpaBox" class="hidden">
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">十段 3.7</p>
+                            <p id="gpav-ten37" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">十段 3.67</p>
+                            <p id="gpav-ten367" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">五段 4.0</p>
+                            <p id="gpav-std40" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">改进 4.0</p>
+                            <p id="gpav-imp40" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">北大 4.0</p>
+                            <p id="gpav-pku" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">中科大 4.3</p>
+                            <p id="gpav-ustc" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">加拿大 4.3</p>
+                            <p id="gpav-can43" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">五分制</p>
+                            <p id="gpav-five5" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-[#B08968] mb-0.5">加权均分</p>
+                            <p id="gpav-avg" class="text-xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                    </div>
+                    <p id="gpaSub" class="text-[11px] text-[#B08968] mt-3"></p>
+                    <p id="gpaNote" class="text-[10px] text-[#D9A56E] mt-1"></p>
+                    <button id="gpaCopyBtn" onclick="gpaCopy()" class="mt-3 px-5 py-2 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#D9A56E] to-[#A66D3A] shadow-md active:scale-95 transition-all">📋 复制全部结果</button>
+                </div>
+            </div>
+            <details class="card p-4 mt-4">
+                <summary class="text-xs text-[#A66D3A] font-medium cursor-pointer select-none">查看各算法换算规则（对完你们学校的就知道哪个准）</summary>
+                <div class="text-[11px] text-[#85532E] leading-relaxed mt-2.5 space-y-1.5">
+                    <p>· 算法：GPA = Σ(单科绩点 × 该科学分) ÷ 总学分（按学分加权，不是各科成绩简单平均）</p>
+                    <p>· 十段 3.7（多数高校教务）：90-100→4.0 · 85-89→3.7 · 82-84→3.3 · 78-81→3.0 · 75-77→2.7 · 72-74→2.3 · 68-71→2.0 · 64-67→1.5 · 60-63→1.0 · 60以下→0</p>
+                    <p>· 十段 3.67（美式/复旦折算表）：分段同上，但 3.7/3.3/2.7/2.3/1.5 档记 3.67/3.33/2.67/2.33/1.67</p>
+                    <p>· 五段 4.0（标准 4.0）：90-100→4.0 · 80-89→3.0 · 70-79→2.0 · 60-69→1.0 · 60以下→0</p>
+                    <p>· 改进 4.0（出国申请常用）：85-100→4.0 · 70-84→3.0 · 60-69→2.0 · 60以下→0</p>
+                    <p>· 北大 4.0（连续公式·最压绩点）：绩点 = 4 − 3×(100−成绩)² ÷ 1600，只有 100 分才满绩，60 分约 1.0，60 以下记 0</p>
+                    <p>· 中科大 4.3：95-100→4.3 · 90-94→4.0 · 85-89→3.7 · 82-84→3.3 · 78-81→3.0 · 75-77→2.7 · 72-74→2.3 · 68-71→2.0 · 64-67→1.7 · 60-63→1.3 · 60以下→0</p>
+                    <p>· 加拿大 4.3：90-100→4.3 · 85-89→4.0 · 80-84→3.7 · 75-79→3.3 · 70-74→3.0 · 65-69→2.7 · 60-64→2.3 · 60以下→0</p>
+                    <p>· 五分制（五段）：90-100→5 · 80-89→4 · 70-79→3 · 60-69→2 · 60以下→0</p>
+                    <p>· 等级折算：优→95 · 良→85 · 中→75 · 及格→65 · 不及格→50</p>
+                    <p class="text-[#B08968]">· 满绩说明：分段制每门 ≥90 即满绩；北大公式只有 100 满绩。个别学校还有 4.5 制等更特殊规则，以本校教务为准，需要可再加</p>
+                </div>
+            </details>
+            <p class="text-[10px] text-[#C9B28F] text-center mt-4">本地离线计算，无需联网</p>
+        </div>
+    </div>

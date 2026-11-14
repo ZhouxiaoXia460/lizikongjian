@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>栗子管理设置</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="栗子管理">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="admin-icon.png">
+<style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+        background: linear-gradient(160deg, #f7ede1, #f3e3cd);
+        font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .card {
+        width: 100%; max-width: 420px; background: #fffaf2; border-radius: 18px;
+        box-shadow: 0 16px 44px rgba(80, 50, 20, .18); padding: 22px 20px;
+    }
+    h1 { margin: 0 0 4px; font-size: 20px; color: #5b3a1e; }
+    .sub { margin: 0 0 14px; font-size: 12.5px; color: #a58a6b; }
+    label { display: block; font-size: 13.5px; color: #6b4a2b; font-weight: 600; margin: 14px 0 6px; }
+    .hint { font-weight: 400; color: #b09a7d; font-size: 12px; }
+    input, textarea {
+        width: 100%; border: 1.5px solid #e2cbaa; border-radius: 12px; background: #fff;
+        padding: 11px 12px; font-size: 14.5px; color: #4a331c; font-family: inherit; outline: none;
+    }
+    input:focus, textarea:focus { border-color: #b9804b; }
+    textarea { min-height: 200px; resize: vertical; font-size: 13.5px; line-height: 24px; }
+    button {
+        border: 0; border-radius: 12px; padding: 11px 0; font-size: 14.5px; font-weight: 600;
+        cursor: pointer; font-family: inherit; width: 100%; margin-top: 10px;
+        background: #efe3d2; color: #6b4a2b;
+    }
+    button:disabled { opacity: .55; }
+    button.primary { background: linear-gradient(135deg, #b9804b, #8b5a2b); color: #fff; box-shadow: 0 4px 12px rgba(139, 90, 43, .35); }
+    .row { display: flex; gap: 8px; }
+    .row button { flex: 1; margin-top: 10px; padding: 10px 0; font-size: 13px; }
+    .cur {
+        font-size: 12.5px; color: #6b4a2b; background: #f6ead8; border-radius: 10px;
+        padding: 10px 12px; line-height: 1.7; word-break: break-all; white-space: pre-wrap;
+    }
+    .msg { font-size: 13px; min-height: 18px; margin: 12px 0 0; line-height: 1.55; word-break: break-all; }
+    .ok { color: #2e7d32; } .err { color: #c0392b; } .gray { color: #8a7358; }
+    #pinView input { text-align: center; letter-spacing: 3px; font-size: 17px; }
+    /* —— 三标签页 —— */
+    .tabs { display: flex; gap: 5px; margin: 12px 0 14px; background: #f6ead8; padding: 4px; border-radius: 12px; }
+    .tab { flex: 1; margin: 0; padding: 9px 0; font-size: 13.5px; border-radius: 9px; background: transparent; color: #8a7358; font-weight: 600; box-shadow: none; }
+    .tab.on { background: #fff; color: #5b3a1e; box-shadow: 0 2px 8px rgba(139, 90, 43, .15); }
+    .tabpanel[hidden] { display: none; }
+    /* —— 分类胶囊（题库）—— */
+    .cats { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0 2px; }
+    .cat-chip {
+        border: 1.5px solid #e2cbaa; background: #fff; color: #85532E; border-radius: 999px;
+        padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+        width: auto; margin: 0;
+    }
+    .cat-chip.on { background: linear-gradient(135deg, #b9804b, #8b5a2b); color: #fff; border-color: #8b5a2b; }
+    /* —— 行号输入框 —— */
+    .ta-wrap { position: relative; }
+    .ta-wrap textarea { padding-left: 52px; }
+    .ta-nums {
+        position: absolute; top: 1.5px; left: 1.5px; bottom: 1.5px; width: 38px;
+        padding: 11px 6px 11px 0; text-align: right;
+        font-size: 12px; line-height: 24px; color: #b09a7d; font-family: inherit;
+        background: #f6ead8; border-radius: 11px 0 0 11px; border-right: 1px solid #e2cbaa;
+        overflow: hidden; pointer-events: none; white-space: pre; box-sizing: border-box;
+    }
+    /* —— 历史公告 —— */
+    .hist-item { background: #f6ead8; border-radius: 10px; padding: 10px 12px; margin-top: 8px; font-size: 13px; color: #6b4a2b; text-align: left; }
+    .hist-meta { font-size: 11px; color: #a58a6b; margin-bottom: 3px; }
+    .hist-title { font-weight: 700; word-break: break-all; }
+    .hist-body { white-space: pre-wrap; word-break: break-word; line-height: 1.6; margin-top: 4px; max-height: 132px; overflow-y: auto; }
+    .hist-body.open { max-height: none; }
+    .hist-ops { margin-top: 7px; display: flex; gap: 8px; }
+    .hist-ops button { width: auto; flex: 1; margin: 0; padding: 7px 0; font-size: 12px; border-radius: 9px; }
+</style>
+</head>
+<body>
+    <div id="pinView" class="card" hidden>
+        <h1>🌰 栗子管理设置</h1>
+        <p class="sub">公告 · 情话 · 题库 三合一 · 请输入管理口令（小写字母+数字，打错能看见）</p>
+        <input id="pin" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="管理口令">
+        <button id="pinBtn" class="primary" onclick="window.__liziUnlock &amp;&amp; window.__liziUnlock()">解 锁</button>
+        <p id="pinMsg" class="msg err"></p>
+    </div>
+
+    <div id="panel" class="card" hidden>
+        <h1>🌰 栗子管理设置</h1>
+        <div class="tabs">
+            <button id="tabBtn-notice" class="tab on" onclick="switchTab('notice')">📢 公告</button>
+            <button id="tabBtn-love" class="tab" onclick="switchTab('love')">💌 情话</button>
+            <button id="tabBtn-truth" class="tab" onclick="switchTab('truth')">🎴 题库</button>
+        </div>
+
+        <!-- ============ ① 公告 ============ -->
+        <div id="tab-notice" class="tabpanel">
+            <p class="sub">发布后：所有设备下次进入时各弹一次，之后不再打扰</p>
+            <div id="notice_cur" class="cur">读取中…</div>
+            <label>公告标题 <span class="hint">（≤60字）</span></label>
+            <input id="notice_title" maxlength="60" placeholder="例如：欢迎来到栗子空间">
+            <label>公告正文 <span class="hint">（≤3000字，支持换行）</span></label>
+            <textarea id="notice_content" maxlength="3000" placeholder="写点什么告诉进入空间的人…"></textarea>
+            <button id="notice_pubBtn" class="primary">📢 发布并启用（版本+1，设备会再弹一次）</button>
+            <div class="row">
+                <button id="notice_offBtn">⛔ 停用公告</button>
+                <button id="notice_reBtn">🔄 重新读取</button>
+            </div>
+            <p id="notice_msg" class="msg gray"></p>
+            <label style="margin-top:20px;">🕘 历史公告 <span class="hint">（每次发布自动留档，最多 30 条，可恢复可删除）</span></label>
+            <div id="notice_histList"></div>
+        </div>
+
+        <!-- ============ ② 情话 ============ -->
+        <div id="tab-love" class="tabpanel" hidden>
+            <p class="sub">云端情话覆盖内置 20 句 · 一行一句 · 左侧行号=第几句（长句折行也只标在句首）</p>
+            <div id="love_bankInfo" class="cur">读取中…</div>
+            <label>新增情话 <span class="hint">（一行一句；想看全部带行号就点「查看·编辑当前全部」）</span></label>
+            <div class="ta-wrap">
+                <div id="love_nums" class="ta-nums" aria-hidden="true">1</div>
+                <textarea id="love_paste" placeholder="例如：&#10;今天也要好好相爱哦&#10;你是我的栗子，甜而不腻&#10;世界很大，我心里只装得下你"></textarea>
+            </div>
+            <label>轮换间隔 <span class="hint">（多少秒换一句，1～3600，默认 8）</span></label>
+            <input id="love_interval" type="number" min="1" max="3600" step="1" inputmode="numeric" placeholder="8">
+            <label>轮放起点 <span class="hint">（从第几句开始轮放：填 5 就从第 5 句开始，1 = 第一句）</span></label>
+            <input id="love_start" type="number" min="1" step="1" inputmode="numeric" placeholder="1">
+            <button id="love_appendBtn" class="primary" onclick="loveAppend()">➕ 加入情话列表（自动去重）</button>
+            <div class="row">
+                <button onclick="loveExport()">📋 查看·编辑当前全部</button>
+                <button onclick="loveClearPaste()">🧹 清空编辑区</button>
+            </div>
+            <button id="love_saveBtn" class="primary" onclick="loveSave()">💾 保存到云端（版本+1，两人手机生效）</button>
+            <div class="row">
+                <button onclick="loveRestoreBuiltin()">↩️ 恢复内置情话</button>
+                <button id="love_undoBtn" onclick="loveUndo()">↩️ 撤销上一步</button>
+            </div>
+            <button id="love_undoPubBtn" onclick="loveUndoPublish()" hidden>⏪ 撤回上次发布（回到之前版本内容）</button>
+            <p id="love_msg" class="msg gray"></p>
+        </div>
+
+        <!-- ============ ③ 题库 ============ -->
+        <div id="tab-truth" class="tabpanel" hidden>
+            <p class="sub">真心话大冒险 · 一行一题（行号=题号，长句折行也只标在句首）· 保存后两人手机下次打开真心话即生效</p>
+            <div id="truth_bankInfo" class="cur">读取云端题库中…</div>
+            <label>选择分类 <span class="hint">（粘贴的题目若不带「分类|」前缀，就归到这里）</span></label>
+            <div id="truth_catChips" class="cats"></div>
+            <label>粘贴题目 <span class="hint">（一行一题；也可写「分类|题目」，如：走心|你最爱我哪一点）</span></label>
+            <div class="ta-wrap">
+                <div id="truth_nums" class="ta-nums" aria-hidden="true">1</div>
+                <textarea id="truth_paste" placeholder="例如：&#10;今天最想和我做的一件小事是什么？&#10;走心|哪一刻你确定我是爱你的？&#10;回忆|我们第一次约会你紧张吗？"></textarea>
+            </div>
+            <button id="truth_appendBtn" class="primary" onclick="bankAppend()">➕ 追加到所选分类（自动去重）</button>
+            <div class="row" id="truth_singleCatOps">
+                <button onclick="bankReplace()">♻️ 替换所选分类</button>
+                <button onclick="bankClearCat()">🧹 清空所选分类</button>
+                <button onclick="bankRestoreCat()">↩️ 恢复内置</button>
+            </div>
+            <div class="row">
+                <button id="truth_undoBtn" onclick="bankUndo()">↩️ 撤销上一步</button>
+                <button onclick="bankClearPaste()">🧹 清空粘贴区</button>
+            </div>
+            <div class="row">
+                <button onclick="bankExport()">📤 查看·导出当前视图</button>
+            </div>
+            <button id="truth_saveBtn" class="primary" onclick="bankSave()">💾 保存全部到云端（版本+1，两人手机生效）</button>
+            <button id="truth_undoPubBtn" onclick="bankUndoPublish()" hidden>⏪ 撤回上次发布（回到之前版本内容）</button>
+            <p id="truth_msg" class="msg gray"></p>
+        </div>
+    </div>
+
+<script>
+/*__BUILTIN_DATA__*/
+</script>
+<script src="admin-gateway.js?v=3"></script>
+<script>
+(function () {
+    'use strict';
+    // ===== 管理口令（公告/情话/题库统一；输入自动忽略大小写/空格/全角）=====
+    var PIN = 'lizi666';
+    var NOTICE_PATH = 'lizi-space/notice.json';
+    var LOVE_PATH = 'lizi-space/love-quotes.json';
+    var TRUTH_PATH = 'lizi-space/truth-bank.json';
+
+    var $ = function (id) { return document.getElementById(id); };
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function normPin(s) {
+        return String(s || '')
+            .replace(/\s+/g, '')
+            .replace(/[\uFF01-\uFF5E]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+            .toLowerCase();
+    }
+    function nowStr() { return new Date().toISOString().replace('T', ' ').slice(0, 16); }
+    function gwOk() { return typeof window.LiziGW !== 'undefined' && !!window.LiziGW.get && !!window.LiziGW.put; }
+
+    // ===== 行号组件：左侧行号=第几句/第几题；一句话折行时，数字只标在句首那一行，续行留空 =====
+    function bindNums(taId, numsId) {
+        var ta = $(taId), nums = $(numsId);
+        if (!ta || !nums) return;
+        // 镜像测宽：与 textarea 同字体/行高/内容宽度，用来算每句实际占几屏行
+        var mirror = document.createElement('div');
+        mirror.setAttribute('style', 'position:absolute;left:-99999px;top:0;visibility:hidden;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;box-sizing:border-box;');
+        document.body.appendChild(mirror);
+        var cs = window.getComputedStyle(ta);
+        ['fontFamily', 'fontSize', 'fontWeight', 'letterSpacing', 'wordSpacing'].forEach(function (k) { try { mirror.style[k] = cs[k]; } catch (e) { } });
+        var LINE_H = Math.round(parseFloat(cs.lineHeight) || 24); // 与 CSS 的 24px 行高一致
+        var PAD_L = parseFloat(cs.paddingLeft) || 0, PAD_R = parseFloat(cs.paddingRight) || 0;
+        function visualLines(text, innerW) {
+            mirror.style.width = innerW + 'px';
+            mirror.textContent = (text === '') ? '\u200b' : text;
+            return Math.max(1, Math.round(mirror.offsetHeight / LINE_H));
+        }
+        function sync() {
+            var lines = ta.value.replace(/\r/g, '').split('\n');
+            var innerW = Math.max(20, ta.clientWidth - PAD_L - PAD_R);
+            var out = [];
+            for (var i = 0; i < lines.length; i++) {
+                out.push(String(i + 1));
+                var extra = visualLines(lines[i], innerW) - 1;
+                for (var j = 0; j < extra; j++) out.push(' ');
+            }
+            nums.textContent = out.join('\n');
+            nums.scrollTop = ta.scrollTop;
+        }
+        var syncTimer = null;
+        function syncSoon() { if (syncTimer) clearTimeout(syncTimer); syncTimer = setTimeout(sync, 90); }
+        ta.addEventListener('input', syncSoon);
+        ta.addEventListener('scroll', function () { nums.scrollTop = ta.scrollTop; });
+        window.addEventListener('resize', syncSoon);
+        ta.__syncNums = sync;
+        sync();
+    }
+    function syncNums(taId) { var ta = $(taId); if (ta && ta.__syncNums) ta.__syncNums(); }
+
+    // ==================== 标签页 ====================
+    var loadedTabs = {};
+    function switchTab(name) {
+        if (['notice', 'love', 'truth'].indexOf(name) < 0) name = 'notice';
+        ['notice', 'love', 'truth'].forEach(function (t) {
+            var p = $('tab-' + t), b = $('tabBtn-' + t);
+            if (p) p.hidden = (t !== name);
+            if (b) b.classList.toggle('on', t === name);
+        });
+        try { history.replaceState(null, '', '#' + name); } catch (e) { }
+        if (!loadedTabs[name]) {
+            loadedTabs[name] = true;
+            if (name === 'notice') nLoad();
+            else if (name === 'love') loveLoad();
+            else bankLoad();
+        }
+    }
+    window.switchTab = switchTab; // 标签按钮是 inline onclick，必须挂到全局
+    function initialTab() {
+        var h = (location.hash || '').replace('#', '');
+        return (h === 'love' || h === 'truth') ? h : 'notice';
+    }
+
+    // ==================== ① 公告（含历史） ====================
+    var nCur = null;
+    function nMsg(text, cls) { var el = $('notice_msg'); el.textContent = text || ''; el.className = 'msg ' + (cls || 'gray'); }
+    function nBusy(on) { ['notice_pubBtn', 'notice_offBtn', 'notice_reBtn'].forEach(function (id) { if ($(id)) $(id).disabled = !!on; }); }
+    function nHistArr() { return (nCur && Object.prototype.toString.call(nCur.history) === '[object Array]') ? nCur.history : []; }
+
+    function renderNCur(n) {
+        var el = $('notice_cur');
+        if (!n) { el.textContent = '云端还没有公告。填好标题和正文，点「发布并启用」即可创建第一条公告。'; return; }
+        var st = (n.enabled === false) ? '⛔ 已停用（设备不会弹窗）' : '✅ 启用中';
+        el.textContent = '当前：' + st +
+            ' · 版本 v' + (typeof n.version === 'number' ? n.version : '?') +
+            (n.updatedAt ? (' · 更新于 ' + n.updatedAt) : '') +
+            '\n标题：' + (n.title || '（无）') +
+            '\n正文：' + (n.content ? (n.content.length > 80 ? n.content.slice(0, 80) + '…' : n.content) : '（无）');
+    }
+
+    function renderNHistory() {
+        var box = $('notice_histList');
+        if (!box) return;
+        var h = nHistArr();
+        if (!h.length) {
+            box.innerHTML = '<div class="hist-item" style="color:#a58a6b;">还没有历史公告。每次「发布」都会自动在这里留档，可随时恢复或删除。</div>';
+            return;
+        }
+        box.innerHTML = h.map(function (it, i) {
+            return '<div class="hist-item">' +
+                '<div class="hist-meta">v' + esc(it.version) + ' · ' + esc(it.at || '') + (it.enabled === false ? ' · 停用操作' : '') + '</div>' +
+                '<div class="hist-title">' + esc(it.title || '（无标题）') + '</div>' +
+                '<div class="hist-body" id="notice_hist_body_' + i + '">' + esc(it.content || '（无正文）') + '</div>' +
+                '<div class="hist-ops">' +
+                '<button type="button" onclick="noticeHistToggle(' + i + ')">📄 展开/收起</button>' +
+                '<button type="button" onclick="noticeHistRestore(' + i + ')">↩️ 恢复此版本</button>' +
+                '<button type="button" onclick="noticeHistDelete(' + i + ')">🗑 删除</button>' +
+                '</div></div>';
+        }).join('');
+    }
+
+    window.noticeHistToggle = function (i) {
+        var el = $('notice_hist_body_' + i);
+        if (el) el.classList.toggle('open');
+    };
+    window.noticeHistRestore = function (i) {
+        var it = nHistArr()[i];
+        if (!it) return;
+        var nv = ((nCur && nCur.version) || 0) + 1;
+        if (!confirm('把这条历史重新发布为 v' + nv + '？\n\n标题：' + (it.title || '（无）') + '\n所有设备下次进入时会各弹一次。')) return;
+        nPublish(String(it.title || ''), String(it.content || ''));
+    };
+    window.noticeHistDelete = function (i) {
+        var h = nHistArr();
+        if (!h[i]) return;
+        if (!confirm('从历史记录里删除 v' + h[i].version + ' 这一条？（不影响当前线上公告）')) return;
+        if (!gwOk()) { nMsg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        nBusy(true); nMsg('删除中…', 'gray');
+        var doc = JSON.parse(JSON.stringify(nCur));
+        doc.history.splice(i, 1);
+        doc.updatedAt = nowStr();
+        window.LiziGW.put(NOTICE_PATH, doc).then(function () {
+            nCur = doc;
+            renderNCur(doc);
+            renderNHistory();
+            nMsg('🗑 已删除该条历史记录。', 'ok');
+        }).catch(function (e) {
+            nMsg('删除失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { nBusy(false); });
+    };
+
+    function nPublish(title, content) {
+        if (!gwOk()) { nMsg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        nBusy(true); nMsg('发布中…', 'gray');
+        var base = nCur || { version: 0, history: [] };
+        var doc = {
+            title: title,
+            content: content,
+            enabled: true,
+            version: (typeof base.version === 'number' ? base.version : 0) + 1,
+            updatedAt: nowStr(),
+            history: nHistArr().slice()
+        };
+        doc.history.unshift({ version: doc.version, title: title, content: content, at: doc.updatedAt });
+        if (doc.history.length > 30) doc.history.length = 30;
+        window.LiziGW.put(NOTICE_PATH, doc).then(function () {
+            nCur = doc;
+            $('notice_title').value = title;
+            $('notice_content').value = content;
+            renderNCur(doc);
+            renderNHistory();
+            nMsg('✅ 已发布 v' + doc.version + '。所有设备下次进入栗子空间时会各弹一次（已自动留档到历史）。', 'ok');
+        }).catch(function (e) {
+            nMsg('发布失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在云环境放行名单，请用 tcloudbaseapp.com 域名打开）' : ''), 'err');
+        }).finally(function () { nBusy(false); });
+    }
+
+    function nLoad() {
+        if (!gwOk()) { nMsg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        nBusy(true); nMsg('读取中…', 'gray');
+        window.LiziGW.get(NOTICE_PATH).then(function (n) {
+            nCur = n || null;
+            $('notice_title').value = (n && n.title) || '';
+            $('notice_content').value = (n && n.content) || '';
+            renderNCur(n);
+            renderNHistory();
+            nMsg(n ? '已读取当前公告。' : '云端还没有公告，发布后将创建。', n ? 'ok' : 'gray');
+        }).catch(function (e) {
+            nMsg('读取失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在云环境放行名单，请用 tcloudbaseapp.com 域名打开）' : ''), 'err');
+        }).finally(function () { nBusy(false); });
+    }
+
+    $('notice_pubBtn').addEventListener('click', function () {
+        var title = $('notice_title').value.trim();
+        var content = $('notice_content').value.trim();
+        if (!title && !content) { nMsg('标题和正文不能都为空。', 'err'); return; }
+        nPublish(title, content);
+    });
+    $('notice_offBtn').addEventListener('click', function () {
+        if (!nCur || !nCur.version) { nMsg('云端还没有公告，无需停用。', 'err'); return; }
+        nBusy(true); nMsg('停用中…', 'gray');
+        var doc = JSON.parse(JSON.stringify(nCur));
+        doc.enabled = false;
+        doc.updatedAt = nowStr();
+        window.LiziGW.put(NOTICE_PATH, doc).then(function () {
+            nCur = doc;
+            renderNCur(doc);
+            nMsg('已停用：设备进入时不再弹窗（版本不变，历史保留）。', 'ok');
+        }).catch(function (e) {
+            nMsg('停用失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { nBusy(false); });
+    });
+    $('notice_reBtn').addEventListener('click', nLoad);
+
+    // ==================== ② 情话 ====================
+    var lCur = null, lWorking = [], lDirty = false, lUndoStack = [], lLastPublish = null, lPasteAuto = false;
+    function lMsg(text, cls) { var el = $('love_msg'); el.textContent = text || ''; el.className = 'msg ' + (cls || 'gray'); }
+    function lBusy(on) { ['love_saveBtn', 'love_appendBtn'].forEach(function (id) { if ($(id)) $(id).disabled = !!on; }); }
+    function loveParseLines() {
+        return $('love_paste').value.split('\n')
+            .map(function (s) { return s.replace(/\r/g, '').trim(); })
+            .filter(function (s) { return s; });
+    }
+    function intervalValue() {
+        var n = parseInt($('love_interval').value, 10);
+        if (isNaN(n) || n < 1) n = 8;
+        if (n > 3600) n = 3600;
+        return n;
+    }
+    function startValue() {
+        var n = parseInt($('love_start').value, 10);
+        if (isNaN(n) || n < 1) n = 1;
+        var len = loveParseLines().length || lWorking.length || 1;
+        if (n > len) n = len;
+        return n;
+    }
+    function lRefresh() {
+        var lines = [];
+        lines.push('云端情话：' + (lCur ? ('v' + (lCur.version || 0) + ' · 更新于 ' + (lCur.updatedAt || '?') + ' · 覆盖 ' + (lCur.quotes || []).length + ' 句') : '尚未发布（应用当前用内置 20 句）'));
+        lines.push('当前生效：' + lWorking.length + ' 句' + (lCur ? '' : '（内置预览）'));
+        lines.push('轮换间隔：' + intervalValue() + ' 秒换一句 · 轮放起点：第 ' + startValue() + ' 句（保存后生效）');
+        if (lDirty) lines.push('● 有未保存的修改（保存前只在本页生效）');
+        $('love_bankInfo').textContent = lines.join('\n');
+        var ub = $('love_undoBtn');
+        if (ub) ub.textContent = '↩️ 撤销上一步' + (lUndoStack.length ? '（' + lUndoStack.length + '）' : '');
+        var up = $('love_undoPubBtn');
+        if (up) up.hidden = !lLastPublish;
+    }
+    function lSnapUndo(label) {
+        lUndoStack.push({ label: label, working: lWorking.slice(), dirty: lDirty, paste: $('love_paste').value });
+        if (lUndoStack.length > 30) lUndoStack.shift();
+    }
+    function loveFillTextarea(lines) {
+        $('love_paste').value = lines.join('\n');
+        lPasteAuto = true;
+        syncNums('love_paste');
+    }
+    window.loveExport = function () {
+        if (!lPasteAuto && $('love_paste').value.trim()) {
+            if (!confirm('编辑区有你手动输入/修改的内容，查看当前全部会覆盖它。继续？')) return;
+        }
+        lSnapUndo('查看当前全部');
+        loveFillTextarea(lWorking);
+        lRefresh();
+        lMsg('📋 已载入当前生效的 ' + lWorking.length + ' 句（左侧行号=第几句）。可直接修改后保存；点「撤销上一步」可还原。', 'gray');
+    };
+    window.loveAppend = function () {
+        var items = loveParseLines();
+        if (!items.length) { lMsg('编辑区是空的：一行一句贴进来～', 'err'); return; }
+        lSnapUndo('追加');
+        var added = 0, dup = 0, effSet = {};
+        lWorking.forEach(function (q) { effSet[q] = 1; });
+        items.forEach(function (q) {
+            if (effSet[q]) { dup++; return; }
+            lWorking.push(q); effSet[q] = 1; added++;
+        });
+        if (!added) { if (lUndoStack.length) lUndoStack.pop(); lRefresh(); lMsg('没有新增：' + (dup ? dup + ' 句都已存在' : '没有可加入的内容') + '。', 'gray'); return; }
+        lDirty = true;
+        loveFillTextarea(lWorking);
+        lRefresh();
+        lMsg('✅ 已加入 ' + added + ' 句' + (dup ? ('，跳过重复 ' + dup + ' 句') : '') + '。记得点「保存到云端」。', 'ok');
+    };
+    window.loveSave = function () {
+        if (!gwOk()) { lMsg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        if (!lDirty) {
+            if (!confirm('编辑区内容和当前生效的一致（或未做修改）。仍要按当前编辑区内容保存到云端吗？')) return;
+        } else if (!confirm('保存到云端？两人手机下次回到首页就会用新情话。')) { return; }
+        lBusy(true); lMsg('保存中…', 'gray');
+        var doc = {
+            version: ((lCur && lCur.version) || 0) + 1,
+            updatedAt: nowStr(),
+            quotes: loveParseLines(),
+            interval: intervalValue(),
+            startIndex: startValue()
+        };
+        if (!doc.quotes.length) {
+            lBusy(false);
+            lMsg('编辑区是空的：至少保留一句。想恢复内置情话请用「↩️ 恢复内置情话」。', 'err');
+            return;
+        }
+        if (doc.startIndex > doc.quotes.length) doc.startIndex = doc.quotes.length;
+        var prev = lCur ? JSON.parse(JSON.stringify(lCur)) : null;
+        window.LiziGW.put(LOVE_PATH, doc).then(function () {
+            lLastPublish = prev;
+            try { localStorage.setItem('lizi_loveq_prevdoc', JSON.stringify({ doc: prev })); } catch (e) { }
+            lCur = doc;
+            lWorking = doc.quotes.slice();
+            lDirty = false;
+            lRefresh();
+            loveFillTextarea(lWorking);
+            lMsg('✅ 已保存 v' + doc.version + '（' + doc.quotes.length + ' 句 · ' + doc.interval + ' 秒/句 · 从第 ' + doc.startIndex + ' 句开始轮放）。两人手机下次回到首页自动生效。', 'ok');
+        }).catch(function (e) {
+            lMsg('保存失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在放行名单，请用 tcloudbaseapp.com 域名打开）' : ''), 'err');
+        }).finally(function () { lBusy(false); });
+    };
+    window.loveRestoreBuiltin = function () {
+        if (!confirm('恢复内置情话？云端覆盖将被清空，两人手机回到内置 20 句。')) return;
+        lBusy(true); lMsg('保存中…', 'gray');
+        var prev = lCur ? JSON.parse(JSON.stringify(lCur)) : null;
+        var doc = {
+            version: ((lCur && lCur.version) || 0) + 1,
+            updatedAt: nowStr(),
+            quotes: [],
+            interval: intervalValue(),
+            startIndex: 1
+        };
+        window.LiziGW.put(LOVE_PATH, doc).then(function () {
+            lLastPublish = prev;
+            try { localStorage.setItem('lizi_loveq_prevdoc', JSON.stringify({ doc: prev })); } catch (e) { }
+            lCur = doc;
+            lWorking = BUILTIN_QUOTES.slice();
+            lDirty = false;
+            $('love_start').value = 1;
+            lRefresh();
+            loveFillTextarea([]);
+            lMsg('↩️ 已恢复内置情话（云端 v' + doc.version + '，覆盖为空，轮放起点回到第 1 句）。', 'ok');
+        }).catch(function (e) {
+            lMsg('操作失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { lBusy(false); });
+    };
+    window.loveUndo = function () {
+        if (!lUndoStack.length) { lMsg('没有可撤销的操作了。', 'gray'); return; }
+        var s = lUndoStack.pop();
+        lWorking = s.working;
+        lDirty = s.dirty;
+        $('love_paste').value = s.paste || '';
+        lPasteAuto = false;
+        syncNums('love_paste');
+        lRefresh();
+        lMsg('↩️ 已撤销：' + s.label + '（还没保存到云端）', 'ok');
+    };
+    window.loveUndoPublish = function () {
+        if (!lLastPublish || !gwOk()) { lMsg('没有可撤回的发布。', 'gray'); return; }
+        if (!confirm('撤回本次发布？云端情话将恢复到上一版内容（版本号继续+1）。')) return;
+        lBusy(true); lMsg('撤回中…', 'gray');
+        var redo = lCur ? JSON.parse(JSON.stringify(lCur)) : null;
+        var doc = JSON.parse(JSON.stringify(lLastPublish));
+        doc.version = ((lCur && lCur.version) || 0) + 1;
+        doc.updatedAt = nowStr();
+        if (!(parseInt(doc.interval, 10) > 0)) doc.interval = 8;
+        if (!(parseInt(doc.startIndex, 10) > 0)) doc.startIndex = 1;
+        window.LiziGW.put(LOVE_PATH, doc).then(function () {
+            lLastPublish = redo;
+            try { localStorage.setItem('lizi_loveq_prevdoc', JSON.stringify({ doc: redo })); } catch (e) { }
+            lCur = doc;
+            lWorking = (doc.quotes && doc.quotes.length) ? doc.quotes.slice() : BUILTIN_QUOTES.slice();
+            lDirty = false;
+            $('love_interval').value = parseInt(doc.interval, 10) || 8;
+            $('love_start').value = parseInt(doc.startIndex, 10) || 1;
+            lRefresh();
+            loveFillTextarea(lWorking);
+            lMsg('⏪ 已撤回：云端现在是 v' + doc.version + '（内容为上一版）。', 'ok');
+        }).catch(function (e) {
+            lMsg('撤回失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { lBusy(false); });
+    };
+    window.loveClearPaste = function () {
+        lSnapUndo('清空编辑区');
+        $('love_paste').value = '';
+        lPasteAuto = true;
+        syncNums('love_paste');
+        lRefresh();
+        lMsg('🧹 编辑区已清空，可以贴新情话了（可撤销）。', 'gray');
+    };
+    function loveLoad() {
+        if (!gwOk()) { lMsg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        try { var pv = JSON.parse(localStorage.getItem('lizi_loveq_prevdoc') || 'null'); lLastPublish = (pv && pv.doc) ? pv.doc : null; } catch (e) { lLastPublish = null; }
+        lBusy(true); lMsg('读取中…', 'gray');
+        window.LiziGW.get(LOVE_PATH).then(function (o) {
+            lCur = o || null;
+            if (o && Object.prototype.toString.call(o.quotes) === '[object Array]' && o.quotes.length) {
+                lWorking = o.quotes.slice();
+            } else {
+                lWorking = BUILTIN_QUOTES.slice();
+            }
+            $('love_interval').value = (o && parseInt(o.interval, 10) > 0) ? parseInt(o.interval, 10) : 8;
+            $('love_start').value = (o && parseInt(o.startIndex, 10) > 0) ? parseInt(o.startIndex, 10) : 1;
+            lRefresh();
+            lMsg(o ? '已读取云端情话 v' + (o.version || 0) + '。' : '云端还没有情话，应用当前用内置 20 句；保存后开始云端覆盖。', o ? 'ok' : 'gray');
+        }).catch(function (e) {
+            lMsg('读取失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在放行名单）' : ''), 'err');
+        }).finally(function () { lBusy(false); });
+    }
+    $('love_paste').addEventListener('input', function () { lPasteAuto = false; });
+
+    // ==================== ③ 题库 ====================
+    var tCur = null, tWorking = {}, tSelCat = 'c1', tDirty = false, tUndoStack = [], tLastPublish = null, tPasteAuto = false;
+    var CATS = [
+        { id: 'c1', name: '日常碎碎念', alias: ['日常', '碎碎念', '糖'] },
+        { id: 'c2', name: '共同回忆', alias: ['回忆', '照片'] },
+        { id: 'c3', name: '未来期许', alias: ['未来', '期许', '愿望'] },
+        { id: 'c4', name: '走心时刻', alias: ['走心', '深夜'] },
+        { id: 'c5', name: '趣味脑洞', alias: ['脑洞', '趣味'] },
+        { id: 'c6', name: '轻量真心话', alias: ['轻量', '真心话', '甜'] }
+    ];
+    var ALIAS = { 'c1': 'c1', 'c2': 'c2', 'c3': 'c3', 'c4': 'c4', 'c5': 'c5', 'c6': 'c6' };
+    CATS.forEach(function (c) { c.alias.forEach(function (a) { ALIAS[a] = c.id; }); });
+
+    function tMsg(text, cls) { var el = $('truth_msg'); el.textContent = text || ''; el.className = 'msg ' + (cls || 'gray'); }
+    function tBusy(on) { ['truth_appendBtn', 'truth_saveBtn'].forEach(function (id) { if ($(id)) $(id).disabled = !!on; }); }
+    function builtinOf(cat) { return (BUILTIN_QB && BUILTIN_QB[cat]) || []; }
+    function workingOf(cat) { return Object.prototype.toString.call(tWorking[cat]) === '[object Array]' ? tWorking[cat] : null; }
+    function effectiveOf(cat) { return workingOf(cat) !== null ? tWorking[cat] : builtinOf(cat); }
+    function catName(id) { var c = CATS.find(function (x) { return x.id === id; }); return c ? c.name : id; }
+
+    function renderCats() {
+        var box = $('truth_catChips');
+        if (!box) return;
+        var chips = ['<button type="button" class="cat-chip' + (tSelCat === 'all' ? ' on' : '') + '" onclick="bankSelectCat(\'all\')">🗂 全部（自动分类）</button>'];
+        CATS.forEach(function (c) {
+            var covered = workingOf(c.id) !== null;
+            var n = effectiveOf(c.id).length;
+            chips.push('<button type="button" class="cat-chip' + (c.id === tSelCat ? ' on' : '') + '" onclick="bankSelectCat(\'' + c.id + '\')">' +
+                c.name.split('').slice(0, 2).join('') + ' ' + n + (covered ? '✏️' : '') + '</button>');
+        });
+        box.innerHTML = chips.join('');
+    }
+    function renderInfo() {
+        var lines = [];
+        lines.push('云端题库：' + (tCur ? ('v' + (tCur.version || 0) + ' · 更新于 ' + (tCur.updatedAt || '?')) : '尚未发布（应用当前用内置 300 题）'));
+        lines.push('—— 各分类（✏️=云端已覆盖，否则用内置）——');
+        CATS.forEach(function (c) {
+            var covered = workingOf(c.id) !== null;
+            lines.push(c.name + '：' + (covered ? ('云端覆盖 ' + tWorking[c.id].length + ' 题' + (tDirty && tCur && tCur.qb && tCur.qb[c.id] ? '（原 ' + tCur.qb[c.id].length + '）' : '')) : ('未覆盖 · 内置 ' + builtinOf(c.id).length + ' 题')));
+        });
+        if (tDirty) lines.push('● 有未保存的修改（保存前只在本页生效）');
+        $('truth_bankInfo').textContent = lines.join('\n');
+    }
+    function tRefresh() {
+        renderCats();
+        renderInfo();
+        var all = (tSelCat === 'all');
+        var ops = $('truth_singleCatOps');
+        if (ops) ops.classList.toggle('hidden', all);
+        var ab = $('truth_appendBtn');
+        if (ab) ab.textContent = all ? '📥 一键粘贴导入（按「分类|题目」自动分类）' : '➕ 追加到所选分类（自动去重）';
+        var ub = $('truth_undoBtn');
+        if (ub) ub.textContent = '↩️ 撤销上一步' + (tUndoStack.length ? '（' + tUndoStack.length + '）' : '');
+        var up = $('truth_undoPubBtn');
+        if (up) up.hidden = !tLastPublish;
+    }
+    function parsePaste() {
+        var raw = $('truth_paste').value.split('\n');
+        var out = [];
+        raw.forEach(function (line) {
+            var s = line.replace(/\r/g, '').trim();
+            if (!s) return;
+            var cat = tSelCat, q = s;
+            var i = s.search(/[|｜]/);
+            if (i > 0) {
+                var head = s.slice(0, i).replace(/[|｜]/g, '').trim();
+                var rest = s.slice(i + 1).trim();
+                if (ALIAS[head] && rest) { cat = ALIAS[head]; q = rest; }
+            }
+            out.push({ cat: cat, q: q });
+        });
+        return out;
+    }
+    window.bankSelectCat = function (id) {
+        if (id === tSelCat) return;
+        if (!tPasteAuto && $('truth_paste').value.trim()) {
+            if (!confirm('粘贴区有未处理的内容，切换视图会覆盖它。继续切换？')) return;
+        }
+        tSelCat = id;
+        tRefresh();
+        showCatInTextarea(false);
+    };
+    function tSnapUndo(label) {
+        tUndoStack.push({ label: label, working: JSON.parse(JSON.stringify(tWorking)), selCat: tSelCat, dirty: tDirty, paste: $('truth_paste').value });
+        if (tUndoStack.length > 30) tUndoStack.shift();
+    }
+    window.bankAppend = function () {
+        if (tSelCat === 'all') { bankImportAll(); return; }
+        var items = parsePaste();
+        if (!items.length) { tMsg('粘贴区是空的：一行一题贴进来～', 'err'); return; }
+        tSnapUndo('追加到' + catName(tSelCat));
+        var added = 0, dup = 0;
+        items.forEach(function (it) {
+            var arr = workingOf(it.cat);
+            if (arr === null) { arr = builtinOf(it.cat).slice(); tWorking[it.cat] = arr; }
+            var effSet = {};
+            effectiveOf(it.cat).forEach(function (q) { effSet[q] = 1; });
+            if (arr.indexOf(it.q) >= 0 || effSet[it.q]) { dup++; return; }
+            arr.push(it.q);
+            added++;
+        });
+        if (!added) { if (tUndoStack.length) tUndoStack.pop(); tRefresh(); tMsg('没有新增：' + (dup ? dup + ' 题都已存在' : '没有可加入的题目') + '。', 'gray'); return; }
+        tDirty = true;
+        $('truth_paste').value = '';
+        tPasteAuto = true;
+        syncNums('truth_paste');
+        tRefresh();
+        tMsg('✅ 已加入 ' + added + ' 题' + (dup ? ('，跳过重复 ' + dup + ' 题') : '') + '。记得点「保存全部到云端」。', 'ok');
+    };
+    function bankImportAll() {
+        var raw = $('truth_paste').value.split('\n');
+        var parsed = [], skip = 0;
+        raw.forEach(function (line) {
+            var s = line.replace(/\r/g, '').trim();
+            if (!s) return;
+            var i = s.search(/[|｜]/);
+            if (i <= 0) { skip++; return; }
+            var head = s.slice(0, i).replace(/[|｜]/g, '').trim();
+            var rest = s.slice(i + 1).trim();
+            if (!ALIAS[head] || !rest) { skip++; return; }
+            parsed.push({ cat: ALIAS[head], q: rest });
+        });
+        if (!parsed.length) { tMsg('没有可自动分类的行：每行需要「分类|题目」格式（如：走心|你最爱我哪一点）。', 'err'); return; }
+        tSnapUndo('一键导入');
+        var added = 0, dup = 0, perCat = {};
+        parsed.forEach(function (it) {
+            var arr = workingOf(it.cat);
+            if (arr === null) { arr = builtinOf(it.cat).slice(); tWorking[it.cat] = arr; }
+            var effSet = {};
+            effectiveOf(it.cat).forEach(function (q) { effSet[q] = 1; });
+            if (arr.indexOf(it.q) >= 0 || effSet[it.q]) { dup++; return; }
+            arr.push(it.q);
+            added++;
+            perCat[it.cat] = (perCat[it.cat] || 0) + 1;
+        });
+        if (!added) { if (tUndoStack.length) tUndoStack.pop(); tRefresh(); tMsg('没有新增：' + dup + ' 题都已存在' + (skip ? ('，跳过无前缀行 ' + skip) : '') + '。', 'gray'); return; }
+        tDirty = true;
+        $('truth_paste').value = '';
+        tPasteAuto = true;
+        syncNums('truth_paste');
+        tRefresh();
+        var detail = CATS.filter(function (c) { return perCat[c.id]; }).map(function (c) { return c.name.split('').slice(0, 2).join('') + ' +' + perCat[c.id]; }).join('，');
+        tMsg('✅ 一键导入 ' + added + ' 题（' + detail + '）' + (dup ? ('，重复跳过 ' + dup) : '') + (skip ? ('，无前缀跳过 ' + skip) : '') + '。记得保存。', 'ok');
+    }
+    window.bankReplace = function () {
+        var items = parsePaste();
+        if (!items.length) { tMsg('粘贴区是空的：一行一题贴进来～', 'err'); return; }
+        tSnapUndo('替换' + catName(tSelCat));
+        tWorking[tSelCat] = [];
+        var added = 0, other = 0;
+        items.forEach(function (it) {
+            if (it.cat !== tSelCat) { other++; }
+            var arr = workingOf(it.cat);
+            if (arr === null) { arr = builtinOf(it.cat).slice(); tWorking[it.cat] = arr; }
+            if (arr.indexOf(it.q) >= 0) return;
+            arr.push(it.q);
+            added++;
+        });
+        tDirty = true;
+        $('truth_paste').value = '';
+        tPasteAuto = true;
+        syncNums('truth_paste');
+        tRefresh();
+        showCatInTextarea(false);
+        tMsg('♻️ 所选分类已替换（共 ' + added + ' 题' + (other ? ('，其中 ' + other + ' 题按前缀归入了其他分类') : '') + '）。记得保存。', 'ok');
+    };
+    window.bankClearCat = function () {
+        if (!confirm('清空「' + catName(tSelCat) + '」？保存后抽题时该分类将没有题目。')) return;
+        tSnapUndo('清空' + catName(tSelCat));
+        tWorking[tSelCat] = [];
+        tDirty = true;
+        tRefresh();
+        tMsg('🧹 已清空「' + catName(tSelCat) + '」（还没保存）。', 'ok');
+    };
+    window.bankRestoreCat = function () {
+        tSnapUndo('恢复内置' + catName(tSelCat));
+        delete tWorking[tSelCat];
+        tDirty = true;
+        tRefresh();
+        tMsg('↩️ 「' + catName(tSelCat) + '」已改为使用内置题库（保存后生效）。', 'ok');
+    };
+    function showCatInTextarea(withSnap) {
+        var lines = [];
+        if (tSelCat === 'all') {
+            CATS.forEach(function (c) {
+                effectiveOf(c.id).forEach(function (q) { lines.push(c.name + '|' + q); });
+            });
+        } else {
+            effectiveOf(tSelCat).forEach(function (q) { lines.push(q); });
+        }
+        if (withSnap) tSnapUndo('查看/导出' + (tSelCat === 'all' ? '全部' : catName(tSelCat)));
+        $('truth_paste').value = lines.join('\n');
+        tPasteAuto = true;
+        syncNums('truth_paste');
+        tRefresh();
+    }
+    window.bankExport = function () {
+        if (!tPasteAuto && $('truth_paste').value.trim()) {
+            if (!confirm('粘贴区有未处理的内容，查看/导出会覆盖它。继续？')) return;
+        }
+        showCatInTextarea(true);
+        var label = (tSelCat === 'all') ? '全部' : catName(tSelCat);
+        tMsg('📋 已展示「' + label + '」共 ' + $('truth_paste').value.split('\n').length + ' 题（左侧行号=题号）。可直接编辑后用「替换所选分类」保存修改；要粘贴新题请先清空粘贴区。', 'gray');
+    };
+    window.bankClearPaste = function () {
+        tSnapUndo('清空粘贴区');
+        $('truth_paste').value = '';
+        tPasteAuto = true;
+        syncNums('truth_paste');
+        tRefresh();
+        tMsg('🧹 粘贴区已清空，可以贴新题了（可撤销）。', 'gray');
+    };
+    window.bankUndo = function () {
+        if (!tUndoStack.length) { tMsg('没有可撤销的操作了。', 'gray'); return; }
+        var s = tUndoStack.pop();
+        tWorking = s.working;
+        tSelCat = s.selCat;
+        tDirty = s.dirty;
+        $('truth_paste').value = s.paste || '';
+        tPasteAuto = false;
+        syncNums('truth_paste');
+        tRefresh();
+        tMsg('↩️ 已撤销：' + s.label + '（还没保存到云端）', 'ok');
+    };
+    window.bankUndoPublish = function () {
+        if (!tLastPublish || !gwOk()) { tMsg('没有可撤回的发布。', 'gray'); return; }
+        if (!confirm('撤回本次发布？云端题库将恢复到上一版内容（版本号继续+1）。')) return;
+        tBusy(true); tMsg('撤回中…', 'gray');
+        var redo = tCur ? JSON.parse(JSON.stringify(tCur)) : null;
+        var doc = JSON.parse(JSON.stringify(tLastPublish));
+        doc.version = ((tCur && tCur.version) || 0) + 1;
+        doc.updatedAt = nowStr();
+        window.LiziGW.put(TRUTH_PATH, doc).then(function () {
+            tLastPublish = redo;
+            try { localStorage.setItem('lizi_tiku_prevdoc', JSON.stringify({ doc: redo })); } catch (e) { }
+            tCur = doc;
+            tWorking = JSON.parse(JSON.stringify(doc.qb || {}));
+            tDirty = false;
+            tRefresh();
+            tMsg('⏪ 已撤回：云端现在是 v' + doc.version + '（内容为上一版）。', 'ok');
+        }).catch(function (e) {
+            tMsg('撤回失败：' + (e && e.message ? e.message : e), 'err');
+        }).finally(function () { tBusy(false); });
+    };
+    window.bankSave = function () {
+        if (!gwOk()) { tMsg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        var total = 0;
+        CATS.forEach(function (c) { total += effectiveOf(c.id).length; });
+        if (total === 0) { tMsg('整个题库是空的，至少留一道题（或恢复内置）。', 'err'); return; }
+        if (!confirm('保存到云端？两人手机下次打开真心话就会用新题库。')) return;
+        tBusy(true); tMsg('保存中…', 'gray');
+        var doc = {
+            version: ((tCur && tCur.version) || 0) + 1,
+            updatedAt: nowStr(),
+            qb: tWorking
+        };
+        window.LiziGW.put(TRUTH_PATH, doc).then(function () {
+            tCur = doc;
+            tDirty = false;
+            tRefresh();
+            tMsg('✅ 已保存 v' + doc.version + '。两人手机下次进入「真心话说一说」自动生效（正在开着的话，重新进一次）。', 'ok');
+        }).catch(function (e) {
+            tMsg('保存失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在放行名单）' : ''), 'err');
+        }).finally(function () { tBusy(false); });
+    };
+    function bankLoad() {
+        if (!gwOk()) { tMsg('网关模块未加载，请刷新页面重试。', 'err'); return; }
+        try { var pv = JSON.parse(localStorage.getItem('lizi_tiku_prevdoc') || 'null'); tLastPublish = (pv && pv.doc) ? pv.doc : null; } catch (e) { tLastPublish = null; }
+        tBusy(true); tMsg('读取中…', 'gray');
+        window.LiziGW.get(TRUTH_PATH).then(function (o) {
+            tCur = o || null;
+            tWorking = (o && o.qb && typeof o.qb === 'object') ? JSON.parse(JSON.stringify(o.qb)) : {};
+            tRefresh();
+            showCatInTextarea(false);
+            tMsg(o ? '已读取云端题库 v' + (o.version || 0) + '。' : '云端还没有题库，当前应用使用内置 300 题；保存后将开始云端覆盖。', o ? 'ok' : 'gray');
+        }).catch(function (e) {
+            tMsg('读取失败：' + (e && e.message ? e.message : e) +
+                (String(e && e.message).indexOf('403') >= 0 ? '（页面来源不在放行名单）' : ''), 'err');
+        }).finally(function () { tBusy(false); });
+    }
+    $('truth_paste').addEventListener('input', function () { tPasteAuto = false; });
+
+    // ==================== 口令门 & 启动 ====================
+    function tryUnlock() {
+        if (normPin($('pin').value) === normPin(PIN)) {
+            try { sessionStorage.setItem('lizi_admin_ok', '1'); } catch (e) { }
+            $('pinView').hidden = true;
+            $('panel').hidden = false;
+            switchTab(initialTab());
+        } else {
+            $('pinMsg').textContent = '口令不对，再想想～（会忽略大小写/空格，字母请用英文键盘）';
+            $('pin').value = '';
+        }
+    }
+    window.__liziUnlock = tryUnlock;
+    $('pinBtn').addEventListener('click', tryUnlock);
+    $('pin').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryUnlock(); });
+
+    bindNums('love_paste', 'love_nums');
+    bindNums('truth_paste', 'truth_nums');
+
+    var unlocked = false;
+    try {
+        unlocked = sessionStorage.getItem('lizi_admin_ok') === '1' ||
+                   sessionStorage.getItem('lizi_loveq_ok') === '1' ||
+                   sessionStorage.getItem('lizi_tiku_ok') === '1';
+    } catch (e) { }
+    if (unlocked) {
+        $('pinView').hidden = true;
+        $('panel').hidden = false;
+        switchTab(initialTab());
+    } else {
+        $('pinView').hidden = false;
+        $('panel').hidden = true;
+    }
+})();
+</script>
+</body>
+</html>

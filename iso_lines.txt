@@ -1,0 +1,684 @@
+610:        #isoViewport { position: relative; height: clamp(380px, 58vh, 620px); border-radius: 18px; border: 2px solid #F5DEC2; overflow: hidden; background: linear-gradient(180deg, #FDF6EC 0%, #FAEDD8 100%); cursor: grab; transition: opacity 0.22s ease; touch-action: none; }
+611:        #isoViewport.iso-panning { cursor: grabbing; }
+612:        #isoViewport.iso-fading { opacity: 0; }
+613:        #isoWorld { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+614:        .iso-cell-hi { position: absolute; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); background: rgba(240, 166, 192, 0.5); pointer-events: none; z-index: 500; }
+618:        .furn-item.iso-selected .furn-svg { filter: drop-shadow(0 0 7px rgba(240, 166, 192, 1)); transform: translateY(-5px); }
+619:        .furn-item.iso-dragging { cursor: grabbing; }
+620:        .furn-item.iso-dragging .furn-svg { opacity: 0.7; }
+622:        .iso-space-tab { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 999px; border: 1.5px solid #F5DEC2; background: #fff; color: #B08968; cursor: pointer; transition: all 0.15s; }
+623:        .iso-space-tab.selected { background: linear-gradient(135deg, #FFE8CC, #FFF4E5); border-color: #D9A56E; color: #5E3A20; }
+624:        .iso-theme-btn { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1.5px solid #F5DEC2; background: #fff; color: #B08968; cursor: pointer; transition: all 0.15s; }
+625:        .iso-theme-btn.selected { border-color: #D9A56E; color: #5E3A20; background: #FFF4E5; }
+626:        .iso-pal { height: 62px; border-radius: 14px; border: 2px solid #F5DEC2; background: #fff; cursor: grab; transition: all 0.15s; display: flex; align-items: center; justify-content: center; overflow: visible; }
+627:        .iso-pal:hover { border-color: #F0A6C0; background: #FFF0F6; transform: scale(1.06); }
+628:        .iso-pal .furn-svg { filter: none; }
+632:        .iso-ctx-menu { position: fixed; z-index: 10000; background: #fff; border: 1.5px solid #F5DEC2; border-radius: 14px; box-shadow: 0 10px 28px rgba(94, 58, 32, 0.2); padding: 4px; min-width: 132px; }
+633:        .iso-ctx-menu button { display: block; width: 100%; text-align: left; font-size: 12px; font-weight: 600; color: #5E3A20; padding: 8px 12px; border-radius: 10px; background: none; border: none; cursor: pointer; }
+634:        .iso-ctx-menu button:hover { background: #FFF4E5; }
+635:        .iso-ctx-menu button.danger { color: #C2543A; }
+636:        #gameRoomPage.iso-focus #isoFocusHide { display: none !important; }
+637:        #gameRoomPage.iso-focus #isoViewport { height: min(76vh, 700px); }
+638:        #isoFocusExit { z-index: 40; }
+639:        .iso-progress-track { height: 8px; border-radius: 999px; background: #F5DEC2; overflow: hidden; flex: 1; min-width: 60px; }
+640:        .iso-progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #F0A6C0, #D9A56E); transition: width 0.3s; }
+641:        .iso-award-chip { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1.5px dashed #E8D5B0; background: #FFFBF5; color: #C9B28F; }
+642:        .iso-award-chip.on { border-style: solid; border-color: #D9A56E; background: linear-gradient(135deg, #FFE8CC, #FFF4E5); color: #5E3A20; }
+643:        .iso-awards-mask { position: fixed; inset: 0; background: rgba(62, 40, 20, 0.4); z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 20px; }
+644:        .iso-awards-panel { background: #FFFDF8; border: 2px solid #F5DEC2; border-radius: 22px; max-width: 420px; width: 100%; max-height: 78vh; overflow-y: auto; box-shadow: 0 18px 50px rgba(62, 40, 20, 0.3); }
+645:        .iso-task-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #5E3A20; }
+646:        .iso-task-row.done { color: #3B8C3B; }
+647:        /* —— Q版小人（类名避开家具库面板的 .iso-pal） —— */
+648:        .iso-pal-char { position: absolute; font-size: 24px; line-height: 1; pointer-events: none; transition: left 2s ease-in-out, top 2s ease-in-out, opacity 0.5s; filter: drop-shadow(0 3px 2px rgba(94, 58, 32, 0.35)); }
+649:        .iso-pal-char.pal-walk { animation: pal-bob 0.4s ease-in-out infinite alternate; transition: left 2s ease-in-out, top 2s ease-in-out; }
+651:        .iso-pal-char .pal-zzz { position: absolute; top: -14px; right: -9px; font-size: 11px; animation: pal-zzz-float 1.6s ease-in-out infinite; }
+992:        html.dark .iso-space-tab { background: #211912; border-color: #3A2D1D; color: #A68A66; }
+993:        html.dark .iso-space-tab.selected { background: linear-gradient(135deg, #3A2C18, #2A1F13); border-color: #D9A56E; color: #F0DFC8; }
+994:        html.dark .iso-theme-btn { background: #211912; border-color: #3A2D1D; color: #A68A66; }
+995:        html.dark .iso-theme-btn.selected { background: #2A1F13; color: #F0DFC8; border-color: #D9A56E; }
+996:        html.dark .iso-pal { background: #211912; border-color: #3A2D1D; }
+997:        html.dark .iso-pal:hover { background: #2A1B1E; border-color: #F0A6C0; }
+998:        html.dark .iso-ctx-menu { background: #241C14; border-color: #3A2D1D; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5); }
+999:        html.dark .iso-ctx-menu button { color: #F0DFC8; }
+1000:        html.dark .iso-ctx-menu button:hover { background: #2A1F13; }
+1001:        html.dark .iso-awards-mask { background: rgba(0, 0, 0, 0.6); }
+1002:        html.dark .iso-awards-panel { background: #211912; border-color: #3A2D1D; }
+1003:        html.dark .iso-award-chip { background: #1D150E; color: #7A664E; border-color: #3A2D1D; }
+1004:        html.dark .iso-award-chip.on { background: linear-gradient(135deg, #3A2C18, #2A1F13); color: #F0DFC8; border-color: #D9A56E; }
+1005:        html.dark .iso-progress-track { background: #3A2D1D; }
+1006:        html.dark #isoViewport { background: linear-gradient(180deg, #1E1710 0%, #17110B 100%) !important; border-color: #3A2D1D; }
+1007:        html.dark #isoFocusExit, html.dark #isoViewport [class*="bg-white/95"] { background-color: rgba(33, 25, 18, 0.95) !important; color: #F0DFC8; }
+1008:        html.dark .iso-cell-hi { background: rgba(240, 166, 192, 0.4); }
+1089:        html.dark .iso-progress-fill { background: linear-gradient(90deg, #8A4A62, #B07E45); }
+1090:        html.dark .iso-award-chip.on { background: linear-gradient(135deg, #342616, #2A1F13); color: #F0DFC8; }
+1091:        html.dark .iso-task-row.done { color: #7ED49A; }
+1092:        html.dark .iso-ctx-menu button.danger { color: #E87960; }
+1924:            <div id="isoHouseView">
+1929:                        <button id="isoNightBtn" onclick="toggleIsoNight()" class="iso-theme-btn">🌙 夜晚</button>
+1930:                        <button onclick="exportIsoShot()" class="iso-theme-btn">📸 截图</button>
+1933:                <div id="isoFloorToggles" class="flex gap-2 justify-center flex-wrap mb-2"></div>
+1934:                <div id="isoLayoutRow" class="flex gap-1.5 justify-center flex-wrap mb-2 items-center"></div>
+1935:                <div id="isoAwardsRow" class="flex gap-1.5 justify-center flex-wrap mb-2"></div>
+1936:                <div id="isoHouse" class="rounded-2xl border-2 border-[#F5DEC2] overflow-hidden" style="background: linear-gradient(180deg, #FDF3DC 0%, #FBEFD9 100%);"></div>
+1940:            <div id="isoEditView" class="hidden">
+1941:                <div id="isoFocusHide">
+1943:                        <button onclick="closeIsoEdit()" class="text-[#85532E] text-sm font-medium px-3 py-2 rounded-xl hover:bg-[#FFF4E5] transition-colors">← 全屋</button>
+1945:                            <button onclick="isoUndo()" class="text-xs font-medium text-[#85532E] px-3 py-2 rounded-xl bg-white border border-[#F5DEC2] active:scale-95 transition-transform">↩️ 撤销</button>
+1946:                            <button onclick="isoRedo()" class="text-xs font-medium text-[#85532E] px-3 py-2 rounded-xl bg-white border border-[#F5DEC2] active:scale-95 transition-transform">↪️ 重做</button>
+1947:                            <button onclick="applyIsoSample()" class="text-xs font-medium text-[#85532E] px-3 py-2 rounded-xl bg-white border border-[#F5DEC2] active:scale-95 transition-transform">✨ 样板间</button>
+1948:                            <button onclick="clearIsoSpace()" class="text-xs font-medium text-[#85532E] px-3 py-2 rounded-xl bg-white border border-[#F5DEC2] active:scale-95 transition-transform">🧹 清空</button>
+1949:                            <button onclick="showIsoAwards()" class="text-xs font-medium text-[#85532E] px-3 py-2 rounded-xl bg-white border border-[#F5DEC2] active:scale-95 transition-transform">🏆 成就</button>
+1950:                            <button id="isoPalsBtn" onclick="toggleIsoPals()" class="text-xs font-medium text-[#85532E] px-3 py-2 rounded-xl bg-white border border-[#F5DEC2] active:scale-95 transition-transform">🚶 小人</button>
+1951:                            <button id="isoFocusBtn" onclick="toggleIsoFocus()" class="text-xs font-medium text-[#85532E] px-3 py-2 rounded-xl bg-white border border-[#F5DEC2] active:scale-95 transition-transform">🎯 专注</button>
+1954:                    <div id="isoSpaceTabs" class="flex gap-2 mb-2 flex-wrap"></div>
+1955:                    <div id="isoThemeRow" class="flex gap-2 mb-3 flex-wrap items-center"></div>
+1957:                <div id="isoProgressRow" class="hidden items-center gap-2 mb-2 px-1">
+1958:                    <span id="isoProgressText" class="text-[11px] text-[#85532E] font-semibold whitespace-nowrap">已摆 0 件</span>
+1959:                    <div class="iso-progress-track"><div id="isoProgressFill" class="iso-progress-fill" style="width:0%"></div></div>
+1960:                    <span id="isoProgressTip" class="text-[10px] text-[#B08968] whitespace-nowrap"></span>
+1962:                <div id="isoTasksCard" class="hidden mb-3 bg-gradient-to-r from-[#FFF4E5] to-[#FFFBF5] border border-[#F5DEC2] rounded-2xl p-3">
+1965:                        <button onclick="dismissIsoTasks()" class="text-[10px] text-[#B08968] px-2 py-0.5 rounded-full border border-[#F5DEC2] bg-white">知道了</button>
+1967:                    <div id="isoTaskList" class="space-y-1.5"></div>
+1969:                <div id="isoViewport">
+1970:                    <div id="isoWorld"></div>
+1971:                    <button id="isoFocusExit" onclick="toggleIsoFocus()" class="hidden absolute left-3 top-3 px-3 py-2 rounded-xl bg-white/95 border border-[#F5DEC2] shadow-md text-xs font-semibold text-[#85532E] active:scale-95 transition-transform">✕ 退出专注</button>
+1973:                        <button onclick="isoZoomBtn(1.25)" class="w-11 h-11 rounded-2xl bg-white/95 border border-[#F5DEC2] shadow-md text-xl font-bold text-[#85532E] active:scale-95 transition-transform">＋</button>
+1974:                        <button onclick="isoZoomBtn(0.8)" class="w-11 h-11 rounded-2xl bg-white/95 border border-[#F5DEC2] shadow-md text-xl font-bold text-[#85532E] active:scale-95 transition-transform">−</button>
+1975:                        <button onclick="fitIsoViewBtn()" class="w-11 h-11 rounded-2xl bg-white/95 border border-[#F5DEC2] shadow-md text-base text-[#85532E] active:scale-95 transition-transform">⛶</button>
+1978:                <div id="isoItemBar" class="hidden mt-3 items-center gap-2 bg-white border border-[#F5DEC2] rounded-2xl p-2 flex-wrap">
+1979:                    <span id="isoItemSelected" class="text-sm font-semibold text-[#5E3A20] px-1"></span>
+1981:                    <button id="isoItemToggle" onclick="isoToggleSelected()" class="hidden text-xs px-3 py-1.5 rounded-lg bg-[#FFF4E5] text-[#85532E] border border-[#F5DEC2] active:scale-95">💡 开关</button>
+1982:                    <button onclick="isoRotateSelected()" class="text-xs px-3 py-1.5 rounded-lg bg-[#FFF4E5] text-[#85532E] border border-[#F5DEC2] active:scale-95">🔄 旋转 (R)</button>
+1983:                    <button onclick="isoRemoveSelected()" class="text-xs px-3 py-1.5 rounded-lg bg-white text-[#C2543A] border border-[#F5DEC2] active:scale-95">🗑 收起</button>
+1985:                <div id="isoComboRow" class="mt-3 flex gap-1.5 flex-wrap items-center"></div>
+1986:                <div id="isoLib" class="mt-3 bg-white border border-[#F5DEC2] rounded-2xl overflow-hidden">
+1987:                    <button onclick="toggleIsoLib()" class="w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold text-[#5E3A20] hover:bg-[#FFF4E5] transition-colors">
+1989:                        <span id="isoLibChevron" class="transition-transform">▾</span>
+1991:                    <div id="isoLibBody" class="px-3 pb-3">
+1992:                        <div id="isoLibTabs" class="flex gap-1.5 mb-2 flex-wrap pt-2"></div>
+1993:                        <div id="isoLibItems" class="grid grid-cols-6 sm:grid-cols-10 gap-2"></div>
+2813:                var storageIsObj = (ah.storage === 'object' || ch.storage === 'object');
+2816:                } else if (hasUploadFn && !storageIsFn && !storageIsObj) {
+4395:            appData.togetherDate = new Date().toISOString().split('T')[0];
+5555:            const todayStr = new Date().toISOString().split('T')[0];
+7164:    //   · 修改房间大小：调整 ISO_GRID 的 cols / rows
+7165:    //   · 新增主题：在 ISO_THEMES 里加一套配色
+7166:    //   · 新增空间：在 ISO_SPACES 里加一个空间（自动出现楼层标签和总览房间）
+7168:    const ISO_GRID = { cols: 12, rows: 7, tileW: 64, tileH: 32, wallH: 92 }; // 【修改房间大小】
+7169:    const ISO_THEMES = { // 【新增主题】wp = 墙纸图案（heart 爱心 / dot 圆点 / star 星星，参考图同款淡纹）
+7175:    const ISO_SPACES = [ // 【新增空间】
+7180:    const ISO_SAVE_KEY = 'lizi_iso_v2';
+7277:    let isoState = null;
+7278:    let isoSpaceKey = 'f1';
+7279:    let isoSelId = null;
+7280:    let isoHeld = null;
+7281:    let isoDrag = null;
+7282:    let isoPanDrag = null;
+7283:    let isoLibDrag = null;
+7284:    let isoSpaceHeld = false;
+7285:    let isoHold = null;       // 触屏长按检测：{ id, x, y }
+7286:    let isoHoldTimer = null;
+7287:    let isoLibOpen = true;
+7288:    let isoLibCat = 'living';
+7342:    function _isoPos(gx, gy, ox, oy, S) {
+7344:        const oxx = (ox !== undefined) ? ox : ISO_GRID.rows * 32;
+7345:        const oyy = (oy !== undefined) ? oy : ISO_GRID.wallH + 30;
+7349:        const vp = document.getElementById('isoViewport').getBoundingClientRect();
+7350:        const wx = (clientX - vp.left - isoPan.x) / isoPan.zoom;
+7351:        const wy = (clientY - vp.top - isoPan.y) / isoPan.zoom;
+7352:        const ox = ISO_GRID.rows * 32, oy = ISO_GRID.wallH + 30;
+7356:    function _spaceTheme(key) { return key === 'gaming' ? 'cyber' : (ISO_THEMES[isoState.theme] ? isoState.theme : 'cozy'); }
+7357:    function _loadIsoState() {
+7358:        if (isoState) return;
+7359:        try { const s = JSON.parse(localStorage.getItem(ISO_SAVE_KEY)); if (s && s.spaces) isoState = s; } catch (e) { isoState = null; }
+7360:        if (!isoState || !isoState.spaces) isoState = { theme: 'cozy', spaces: {} };
+7361:        ISO_SPACES.forEach(s => { if (!isoState.spaces[s.key] || !Array.isArray(isoState.spaces[s.key].items)) isoState.spaces[s.key] = { items: [] }; });
+7362:        if (ISO_THEMES[isoState.theme] === undefined) isoState.theme = 'cozy';
+7363:        if (isoState.theme === 'beach') isoState.theme = 'cozy'; // 一次性迁移到新风格（沙滩主题仍可手动选回）
+7364:        if (!isoState.hidden) isoState.hidden = {};
+7365:        if (!isoState.view) isoState.view = { x: 0, y: 0, zoom: 0.85 };
+7367:        if (isoState.night === undefined) isoState.night = false;
+7368:        if (!Array.isArray(isoState.awards)) isoState.awards = [];
+7369:        if (!Array.isArray(isoState.slots)) isoState.slots = [null, null, null];
+7370:        if (typeof isoState.slot !== 'number') isoState.slot = 0;
+7371:        if (isoState.tasksDone === undefined) isoState.tasksDone = false;
+7372:        if (isoState.tasksDismissed === undefined) isoState.tasksDismissed = false;
+7373:        isoPan = { x: isoState.view.x, y: isoState.view.y, zoom: isoState.view.zoom };
+7375:    function _isoSave() {
+7376:        isoState.view = { x: Math.round(isoPan.x), y: Math.round(isoPan.y), zoom: Math.round(isoPan.zoom * 100) / 100 };
+7377:        try { localStorage.setItem(ISO_SAVE_KEY, JSON.stringify(isoState)); } catch (e) {}
+7380:    function _renderIsoTabs() {
+7381:        const wrap = document.getElementById('isoSpaceTabs');
+7383:        wrap.innerHTML = ISO_SPACES.map(function (s) {
+7384:            return '<button class="iso-space-tab ' + (s.key === isoSpaceKey ? 'selected' : '') + '" onclick="setIsoSpace(\'' + s.key + '\')">' + s.tag + ' · ' + s.name + '</button>';
+7388:    function _renderIsoThemeRow() {
+7389:        const wrap = document.getElementById('isoThemeRow');
+7391:        wrap.innerHTML = '<span class="text-[10px] text-[#B08968]">主题：</span>' + Object.keys(ISO_THEMES).map(function (k) {
+7392:            return '<button class="iso-theme-btn ' + (isoState.theme === k ? 'selected' : '') + '" onclick="setIsoTheme(\'' + k + '\')">' + ISO_THEMES[k].label + '</button>';
+7417:        const tk = themeKey || _spaceTheme(isoSpaceKey);
+7492:        wrap.className = 'furn-item' + (it.id === isoSelId ? ' iso-selected' : '');
+7494:        const p = _isoPos(it.gx + 0.5, it.gy + 0.5, (spaceKey ? _isoSpaceOX[spaceKey] : undefined), (spaceKey ? _isoSpaceOY[spaceKey] : undefined), scale || 1);
+7498:        const svg = _furnSVGHTML(it.k, scale || 1, undefined, undefined, _spaceTheme(spaceKey || isoSpaceKey), it.rot, it);
+7505:    const _isoSpaceOX = {}, _isoSpaceOY = {};
+7506:    // 昼夜模式挂在 isoState.night 上（🌙 夜晚：窗外暖光、灯具发光、天空变深）
+7635:    function _renderIsoHouse() {
+7636:        const wrap = document.getElementById('isoHouse');
+7639:        const G = ISO_GRID;
+7640:        const night = !!isoState.night;
+7668:            const theme = ISO_THEMES[_spaceTheme(spaceKey)] || ISO_THEMES.beach;
+7669:            const sp = ISO_SPACES.find(s => s.key === spaceKey);
+7692:            isoState.spaces[spaceKey].items.forEach(function (it) { furn(it, ox, oy, _spaceTheme(spaceKey)); });
+7698:        const groundTheme = ISO_THEMES[isoState.theme] || ISO_THEMES.beach;
+7699:        const isHidden = function (k) { return !!(isoState.hidden && isoState.hidden[k]); };
+7775:        const slabTheme = ISO_THEMES[_spaceTheme('f2')] || ISO_THEMES.cozy;
+7788:            const roofLift = ISO_GRID.wallH * S + 9 * S;
+7796:            const gh = ISO_GRID.wallH * S + 7 * S;
+7822:            const ty = tl[1] - ISO_GRID.wallH * S - 8, by = b[1] + 24 * S;
+7839:            el.addEventListener('click', function () { selectIsoSpace(el.dataset.space); });
+7844:    let isoEditOpen = false;
+7847:        _loadIsoState();
+7848:        _showIsoHouse();
+7850:    function _showIsoHouse() {
+7851:        isoEditOpen = false;
+7852:        stopIsoPals();
+7853:        document.getElementById('isoHouseView').classList.remove('hidden');
+7854:        document.getElementById('isoEditView').classList.add('hidden');
+7855:        _renderIsoFloorToggles();
+7856:        _renderIsoLayoutRow();
+7857:        _renderIsoAwardsRow();
+7858:        const nb = document.getElementById('isoNightBtn');
+7859:        if (nb) nb.innerHTML = isoState.night ? '☀️ 白天' : '🌙 夜晚';
+7860:        _renderIsoHouse();
+7863:    function _renderIsoFloorToggles() {
+7864:        const wrap = document.getElementById('isoFloorToggles');
+7866:        if (!isoState.hidden) isoState.hidden = {};
+7867:        wrap.innerHTML = ISO_SPACES.map(function (s) {
+7868:            const off = !!isoState.hidden[s.key];
+7869:            return '<button class="iso-space-tab ' + (off ? '' : 'selected') + '" onclick="toggleIsoFloor(\'' + s.key + '\')">' + (off ? '🚫 ' : '👁 ') + s.tag + ' · ' + s.name + '</button>';
+7872:    function toggleIsoFloor(key) {
+7873:        if (!isoState.hidden) isoState.hidden = {};
+7874:        isoState.hidden[key] = !isoState.hidden[key];
+7875:        _isoSave();
+7876:        _renderIsoFloorToggles();
+7877:        _renderIsoHouse();
+7880:    function _fitIsoView() {
+7881:        const vpEl = document.getElementById('isoViewport');
+7883:        const G = ISO_GRID;
+7887:        isoPan.zoom = Math.round(Math.max(0.45, Math.min(1.15, Math.min(vw / contentW, vh / contentH))) * 100) / 100;
+7888:        isoPan.x = Math.round((vw - contentW * isoPan.zoom) / 2);
+7889:        isoPan.y = Math.round((vh - contentH * isoPan.zoom) / 2) + 4;
+7890:        _applyIsoTransform();
+7891:        _isoSave();
+7893:    function isoZoomBtn(f) {
+7894:        const vp = document.getElementById('isoViewport');
+7897:        _isoZoomAt(r.left + r.width / 2, r.top + r.height / 2, f);
+7899:    function fitIsoViewBtn() { _fitIsoView(); showToast('🔍 已适配全层显示'); }
+7900:    function selectIsoSpace(key) {
+7901:        isoEditOpen = true;
+7902:        isoSpaceKey = key;
+7903:        isoSelId = null;
+7905:        document.getElementById('isoHouseView').classList.add('hidden');
+7906:        document.getElementById('isoEditView').classList.remove('hidden');
+7907:        _renderIsoTabs();
+7908:        _renderIsoThemeRow();
+7909:        _renderIsoCombos();
+7910:        _renderIsoLib();
+7911:        _renderIsoSpace(false);
+7912:        _fitIsoView();
+7913:        _updateIsoItemBar();
+7915:    function closeIsoEdit() { _showIsoHouse(); }
+7916:    function setIsoSpace(key) { if (isoSpaceKey === key) return; isoSpaceKey = key; isoSelId = null; heldClear(); _renderIsoTabs(); _renderIsoSpace(true); _updateIsoItemBar(); }
+7917:    function setIsoTheme(key) { isoState.theme = key; _isoSave(); _renderIsoThemeRow(); _buildIsoWorld(); _renderIsoLib(); if (!isoEditOpen) _renderIsoHouse(); }
+7918:    function toggleIsoLib() {
+7919:        isoLibOpen = !isoLibOpen;
+7920:        document.getElementById('isoLibBody').classList.toggle('hidden', !isoLibOpen);
+7921:        document.getElementById('isoLibChevron').textContent = isoLibOpen ? '▾' : '▸';
+7923:    function clearIsoSpace() {
+7924:        if (!confirm('清空「' + (ISO_SPACES.find(s => s.key === isoSpaceKey) || {}).name + '」的所有家具吗？')) return;
+7925:        isoPushUndo();
+7926:        isoState.spaces[isoSpaceKey].items = [];
+7927:        isoSelId = null;
+7928:        _isoSave();
+7929:        _renderIsoItems();
+7930:        _updateIsoItemBar();
+7934:    const ISO_SAMPLES = {
+7990:    function applyIsoSample() {
+7991:        const set = ISO_SAMPLES[isoSpaceKey];
+7993:        const themeKey = _spaceTheme(isoSpaceKey);
+7995:        if ((isoState.spaces[isoSpaceKey].items || []).length && !confirm('放入样板间会先清空当前房间的家具，继续吗？')) return;
+7996:        isoPushUndo();
+7997:        isoState.spaces[isoSpaceKey].items = sample.map(function (p) {
+8000:        isoSelId = null;
+8001:        _isoSave();
+8002:        _renderIsoItems();
+8003:        _updateIsoItemBar();
+8004:        showToast('✨ 已按「' + ((ISO_THEMES[themeKey] || {}).label || themeKey) + '」风格布置样板间');
+8006:    function _renderIsoSpace(fade) {
+8008:            const vp = document.getElementById('isoViewport');
+8009:            vp.classList.add('iso-fading');
+8010:            setTimeout(function () { _buildIsoWorld(); _fitIsoView(); vp.classList.remove('iso-fading'); }, 220);
+8011:        } else { _buildIsoWorld(); _fitIsoView(); }
+8013:    function _buildIsoWorld() {
+8014:        const world = document.getElementById('isoWorld');
+8016:        const theme = ISO_THEMES[_spaceTheme(isoSpaceKey)] || ISO_THEMES.beach;
+8017:        const sp = ISO_SPACES.find(s => s.key === isoSpaceKey);
+8018:        const G = ISO_GRID;
+8019:        const night = !!isoState.night;
+8021:        _isoSpaceOX[isoSpaceKey] = OX; _isoSpaceOY[isoSpaceKey] = OY;
+8027:        _pushWalls(out, null, P, 1, theme, G, { stickers: _spaceTheme(isoSpaceKey) === 'cyber', night: night });
+8050:        world.innerHTML = '<svg id="isoShellSvg" width="' + world.style.width + '" height="' + (world.style.height) + '" style="display:block">' + out.join('') + '</svg>';
+8051:        const vpEl = document.getElementById('isoViewport');
+8058:        _renderIsoItems();
+8059:        _applyIsoTransform();
+8060:        if (isoPalsOn()) startIsoPals(); else stopIsoPals();
+8062:    function _renderIsoItems() {
+8063:        const world = document.getElementById('isoWorld');
+8066:        const items = isoState.spaces[isoSpaceKey].items;
+8070:        _afterIsoChange();
+8073:    function _afterIsoChange() {
+8074:        if (!isoState || !isoState.spaces) return;
+8075:        _updateIsoProgress();
+8076:        _renderIsoTasks();
+8077:        _checkIsoAwards(true);
+8079:    function _applyIsoTransform() {
+8080:        const world = document.getElementById('isoWorld');
+8081:        if (world) world.style.transform = 'translate(' + isoPan.x + 'px,' + isoPan.y + 'px) scale(' + isoPan.zoom + ')';
+8083:    function _updateIsoItemBar() {
+8084:        const bar = document.getElementById('isoItemBar');
+8086:        const item = isoSelId ? isoState.spaces[isoSpaceKey].items.find(i => i.id === isoSelId) : null;
+8089:            document.getElementById('isoItemSelected').textContent = def.name || (item.e || '');
+8090:            const tg = document.getElementById('isoItemToggle');
+8100:    function _renderIsoLib() {
+8101:        document.getElementById('isoLibTabs').innerHTML = FURN_LIB.map(c =>
+8102:            '<button class="iso-space-tab ' + (c.cat === isoLibCat ? 'selected' : '') + '" onclick="setIsoLibCat(\'' + c.cat + '\')">' + c.label + '</button>'
+8104:        const cat = FURN_LIB.find(c => c.cat === isoLibCat);
+8105:        const libTk = _spaceTheme(isoSpaceKey);
+8106:        document.getElementById('isoLibItems').innerHTML = cat.keys.map(function (k) {
+8107:            return '<button class="iso-pal" title="' + FURN_DEF[k].name + '" onpointerdown="isoLibDragStart(event, \'' + k + '\')">' + _furnSVGHTML(k, 0.55, undefined, undefined, libTk) + '</button>';
+8110:    function setIsoLibCat(cat) { isoLibCat = cat; _renderIsoLib(); }
+8112:        isoHeld = null;
+8113:        const hi = document.getElementById('isoHeldHi');
+8116:    function _clearIsoHold() {
+8117:        isoHold = null;
+8118:        if (isoHoldTimer) { clearTimeout(isoHoldTimer); isoHoldTimer = null; }
+8120:    function isoLibDragStart(ev, k) {
+8124:        isoHeld = { k: k };
+8127:        ghost.innerHTML = _furnSVGHTML(k, 0.9, undefined, undefined, _spaceTheme(isoSpaceKey));
+8131:        isoLibDrag = { ghost: ghost, k: k };
+8133:        hi.className = 'iso-cell-hi';
+8134:        hi.id = 'isoCellHi';
+8136:        document.getElementById('isoWorld').appendChild(hi);
+8137:        _isoLibMove(ev);
+8139:    function _isoLibMove(ev) {
+8140:        if (!isoLibDrag) return;
+8141:        isoLibDrag.ghost.style.left = ev.clientX - 20 + 'px';
+8142:        isoLibDrag.ghost.style.top = ev.clientY - 40 + 'px';
+8143:        const vp = document.getElementById('isoViewport').getBoundingClientRect();
+8145:        const hi = document.getElementById('isoCellHi');
+8148:            const gx = Math.max(0, Math.min(ISO_GRID.cols - 1, Math.floor(g.gx)));
+8149:            const gy = Math.max(0, Math.min(ISO_GRID.rows - 1, Math.floor(g.gy)));
+8150:            const p = _isoPos(gx, gy);
+8156:            isoLibDrag.cell = { gx: gx, gy: gy, fx: g.gx, fy: g.gy };
+8157:        } else if (hi) { hi.style.display = 'none'; isoLibDrag.cell = null; }
+8159:    function _isoLibDrop(ev) {
+8160:        if (!isoLibDrag) return;
+8161:        const drag = isoLibDrag;
+8162:        isoLibDrag = null;
+8164:        const hi = document.getElementById('isoCellHi');
+8168:            isoHeld = { k: drag.k };
+8170:            hi.className = 'iso-cell-hi';
+8171:            hi.id = 'isoHeldHi';
+8173:            document.getElementById('isoWorld').appendChild(hi);
+8177:        isoPushUndo();
+8183:        isoState.spaces[isoSpaceKey].items.push(newItem);
+8184:        _isoSave();
+8185:        _renderIsoItems();
+8188:    function _isoItemDragStart(el, ev) {
+8189:        const item = isoState.spaces[isoSpaceKey].items.find(i => i.id === el.dataset.id);
+8191:        isoDrag = { id: item.id, el: el, item: item, sx: ev.clientX, sy: ev.clientY, moved: false };
+8192:        el.classList.add('iso-dragging');
+8194:        hi.className = 'iso-cell-hi';
+8195:        hi.id = 'isoCellHi';
+8197:        document.getElementById('isoWorld').appendChild(hi);
+8199:    function _isoItemMove(ev) {
+8200:        if (!isoDrag) return;
+8201:        if (Math.abs(ev.clientX - isoDrag.sx) > 4 || Math.abs(ev.clientY - isoDrag.sy) > 4) isoDrag.moved = true;
+8202:        if (!isoDrag.moved) return;
+8204:        const p = _isoPos(g.gx, g.gy);
+8205:        isoDrag.el.style.left = p.x + 'px';
+8206:        isoDrag.el.style.top = p.y + 'px';
+8207:        const hi = document.getElementById('isoCellHi');
+8209:            const gx = Math.max(0, Math.min(ISO_GRID.cols - 1, Math.floor(g.gx)));
+8210:            const gy = Math.max(0, Math.min(ISO_GRID.rows - 1, Math.floor(g.gy)));
+8211:            const p2 = _isoPos(gx, gy);
+8217:            isoDrag.cell = { gx: gx, gy: gy, fx: g.gx, fy: g.gy };
+8220:    function _isoItemDrop(ev) {
+8221:        if (!isoDrag) return;
+8222:        const d = isoDrag;
+8223:        isoDrag = null;
+8224:        d.el.classList.remove('iso-dragging');
+8225:        const hi = document.getElementById('isoCellHi');
+8227:        const vp = document.getElementById('isoViewport').getBoundingClientRect();
+8229:        if (!inside) { isoRemoveById(d.id); return; }
+8231:            isoPushUndo();
+8235:            _isoSave();
+8237:        else { isoSelId = d.id; }
+8238:        _renderIsoItems();
+8239:        _updateIsoItemBar();
+8241:    function isoRemoveById(id) {
+8242:        isoPushUndo();
+8243:        isoState.spaces[isoSpaceKey].items = isoState.spaces[isoSpaceKey].items.filter(i => i.id !== id);
+8244:        if (isoSelId === id) isoSelId = null;
+8245:        _isoSave();
+8246:        _renderIsoItems();
+8247:        _updateIsoItemBar();
+8250:    function isoRemoveSelected() { if (isoSelId) isoRemoveById(isoSelId); }
+8251:    function isoRotateSelected() {
+8252:        const item = isoState.spaces[isoSpaceKey].items.find(i => i.id === isoSelId);
+8254:        isoPushUndo();
+8256:        _isoSave();
+8257:        _renderIsoItems();
+8260:    function isoToggleSelected() {
+8261:        const item = isoState.spaces[isoSpaceKey].items.find(i => i.id === isoSelId);
+8265:        isoPushUndo();
+8267:        _isoSave();
+8268:        _renderIsoItems();
+8269:        _updateIsoItemBar();
+8272:    function _isoTapPlace(ev) {
+8274:        isoPushUndo();
+8275:        const snapped = _snapDrop({ gx: g.gx, gy: g.gy }, isoHeld.k, 0);
+8276:        const defNew = FURN_DEF[isoHeld.k] || {};
+8277:        const newItem = { id: 'fu_' + Date.now() + '_' + Math.floor(Math.random() * 1000), k: isoHeld.k, gx: snapped.gx, gy: snapped.gy, rot: 0 };
+8279:        isoState.spaces[isoSpaceKey].items.push(newItem);
+8280:        isoHeld = null;
+8281:        const hi = document.getElementById('isoHeldHi');
+8283:        _isoSave();
+8284:        _renderIsoItems();
+8288:        isoPanDrag = { sx: ev.clientX, sy: ev.clientY, px: isoPan.x, py: isoPan.y };
+8289:        document.getElementById('isoViewport').classList.add('iso-panning');
+8291:    function _isoZoomAt(cx, cy, factor) {
+8292:        const vp = document.getElementById('isoViewport').getBoundingClientRect();
+8293:        const nz = Math.max(0.5, Math.min(2.2, isoPan.zoom * factor));
+8294:        const k = nz / isoPan.zoom;
+8295:        isoPan.x = cx - vp.left - (cx - vp.left - isoPan.x) * k;
+8296:        isoPan.y = cy - vp.top - (cy - vp.top - isoPan.y) * k;
+8297:        isoPan.zoom = nz;
+8298:        _applyIsoTransform();
+8299:        _isoSave();
+8304:    const ISO_UNDO_MAX = 60;
+8305:    let isoUndoStack = [], isoRedoStack = [];
+8306:    function _isoSnapshot() { return JSON.stringify({ spaces: isoState.spaces, theme: isoState.theme }); }
+8307:    function isoPushUndo() {
+8308:        isoUndoStack.push(_isoSnapshot());
+8309:        if (isoUndoStack.length > ISO_UNDO_MAX) isoUndoStack.shift();
+8310:        isoRedoStack = [];
+8312:    function _isoApplySnapshot(s) {
+8315:            isoState.spaces = o.spaces;
+8316:            if (o.theme && ISO_THEMES[o.theme]) isoState.theme = o.theme;
+8317:            ISO_SPACES.forEach(sp => { if (!isoState.spaces[sp.key] || !Array.isArray(isoState.spaces[sp.key].items)) isoState.spaces[sp.key] = { items: [] }; });
+8318:            isoSelId = null;
+8319:            _isoSave();
+8320:            _renderIsoItems();
+8321:            _updateIsoItemBar();
+8322:            if (!isoEditOpen) _renderIsoHouse();
+8323:            else { _renderIsoTabs(); _renderIsoThemeRow(); }
+8326:    function isoUndo() {
+8327:        if (!isoUndoStack.length) { showToast('没有可撤销的操作啦'); return; }
+8328:        isoRedoStack.push(_isoSnapshot());
+8329:        _isoApplySnapshot(isoUndoStack.pop());
+8332:    function isoRedo() {
+8333:        if (!isoRedoStack.length) { showToast('没有可重做的操作啦'); return; }
+8334:        isoUndoStack.push(_isoSnapshot());
+8335:        _isoApplySnapshot(isoRedoStack.pop());
+8355:        const cols = ISO_GRID.cols, rows = ISO_GRID.rows;
+8357:        const items = isoState.spaces[isoSpaceKey].items;
+8381:    let isoCtxEl = null;
+8382:    function _closeIsoCtx() {
+8383:        if (isoCtxEl) { isoCtxEl.remove(); isoCtxEl = null; document.removeEventListener('pointerdown', _isoCtxOutside, true); }
+8385:    function _isoCtxOutside(e) {
+8386:        if (isoCtxEl && !isoCtxEl.contains(e.target)) _closeIsoCtx();
+8388:    function _openIsoCtx(x, y, itemId) {
+8389:        _closeIsoCtx();
+8390:        const it = isoState.spaces[isoSpaceKey].items.find(i => i.id === itemId);
+8394:        menu.className = 'iso-ctx-menu';
+8395:        let html = '<button onclick="isoCtxAction(\'rotate\',\'' + itemId + '\')">🔄 旋转 (R)</button>';
+8396:        if (def.lamp || def.tv) html += '<button onclick="isoCtxAction(\'toggle\',\'' + itemId + '\')">' + (it.on === false ? '💡 打开' : '⭕ 关闭') + '</button>';
+8397:        html += '<button onclick="isoCtxAction(\'copy\',\'' + itemId + '\')">📋 复制一件</button>';
+8398:        html += '<button class="danger" onclick="isoCtxAction(\'remove\',\'' + itemId + '\')">🗑 收起</button>';
+8404:        isoCtxEl = menu;
+8405:        setTimeout(function () { document.addEventListener('pointerdown', _isoCtxOutside, true); }, 0);
+8407:    function isoCtxAction(act, id) {
+8408:        _closeIsoCtx();
+8409:        const it = isoState.spaces[isoSpaceKey].items.find(i => i.id === id);
+8411:        isoSelId = id;
+8412:        if (act === 'rotate') { isoRotateSelected(); return; }
+8413:        if (act === 'toggle') { isoToggleSelected(); return; }
+8414:        if (act === 'remove') { isoRemoveById(id); return; }
+8416:            isoPushUndo();
+8422:            isoState.spaces[isoSpaceKey].items.push(clone);
+8423:            isoSelId = clone.id;
+8424:            _isoSave();
+8425:            _renderIsoItems();
+8426:            _updateIsoItemBar();
+8432:    function toggleIsoNight() {
+8433:        isoState.night = !isoState.night;
+8434:        _isoSave();
+8435:        const b = document.getElementById('isoNightBtn');
+8436:        if (b) b.innerHTML = isoState.night ? '☀️ 白天' : '🌙 夜晚';
+8437:        if (isoEditOpen) _buildIsoWorld(); else _renderIsoHouse();
+8438:        showToast(isoState.night ? '🌙 夜晚模式：灯都亮起来啦' : '☀️ 白天模式');
+8442:    function toggleIsoFocus() {
+8443:        if (!isoEditOpen) { selectIsoSpace(isoSpaceKey); }
+8445:        const on = pg.classList.toggle('iso-focus');
+8446:        const exit = document.getElementById('isoFocusExit');
+8448:        const btn = document.getElementById('isoFocusBtn');
+8450:        setTimeout(_fitIsoView, 60);
+8454:    function _updateIsoProgress() {
+8455:        const row = document.getElementById('isoProgressRow');
+8456:        if (!row || !isoState) return;
+8457:        const n = (isoState.spaces[isoSpaceKey] || { items: [] }).items.length;
+8461:        document.getElementById('isoProgressText').textContent = (ISO_SPACES.find(s => s.key === isoSpaceKey) || {}).tag + ' 已摆 ' + n + ' 件';
+8462:        document.getElementById('isoProgressFill').style.width = Math.min(100, Math.round(n / target * 100)) + '%';
+8463:        document.getElementById('isoProgressTip').textContent = n >= target ? '🎉 很丰盛！' : '摆到 ' + target + ' 件更温馨';
+8467:    const ISO_TASKS = [
+8468:        { id: 'sofa', label: '摆一张沙发（客厅分类）', test: function () { return _isoCountAny(['sofa1', 'sofa2']) > 0; } },
+8469:        { id: 'bed', label: '摆一张床（卧室分类）', test: function () { return _isoCountAny(['bed1', 'bed2']) > 0; } },
+8470:        { id: 'plant3', label: '摆 3 件绿植', test: function () { return _isoCountCat('plant') >= 3; } }
+8472:    function _isoCountAny(keys) {
+8474:        ISO_SPACES.forEach(sp => { (isoState.spaces[sp.key].items || []).forEach(it => { if (keys.indexOf(it.k) >= 0) n++; }); });
+8477:    function _isoCountCat(cat) {
+8481:        ISO_SPACES.forEach(sp => { (isoState.spaces[sp.key].items || []).forEach(it => { if (lib.keys.indexOf(it.k) >= 0) n++; }); });
+8484:    function _renderIsoTasks() {
+8485:        const card = document.getElementById('isoTasksCard');
+8486:        if (!card || !isoState) return;
+8487:        if (isoState.tasksDone || isoState.tasksDismissed) { card.classList.add('hidden'); return; }
+8488:        const rows = ISO_TASKS.map(function (t) {
+8490:            return '<div class="iso-task-row ' + (done ? 'done' : '') + '">' + (done ? '✅' : '⬜') + '<span>' + t.label + '</span></div>';
+8492:        document.getElementById('isoTaskList').innerHTML = rows;
+8494:        if (ISO_TASKS.every(t => t.test())) {
+8495:            isoState.tasksDone = true;
+8496:            _isoSave();
+8500:    function dismissIsoTasks() {
+8501:        isoState.tasksDismissed = true;
+8502:        _isoSave();
+8503:        const card = document.getElementById('isoTasksCard');
+8508:    const ISO_AWARDS = [
+8509:        { id: 'warm', icon: '🛋', name: '温馨客厅', desc: '客厅有沙发、茶几、电视柜，且不少于 8 件', test: function () { const c = isoState.spaces.f1.items; return c.length >= 8 && _hasAny(c, ['sofa1', 'sofa2']) && _hasAny(c, ['tea']) && _hasAny(c, ['tvstand']); } },
+8510:        { id: 'cyber', icon: '🎮', name: '满级电竞房', desc: '电竞房集齐电竞桌、电竞椅、显示器，且不少于 6 件', test: function () { const c = isoState.spaces.gaming.items; return c.length >= 6 && _hasAny(c, ['gdesk']) && _hasAny(c, ['gchair']) && _hasAny(c, ['monitor']); } },
+8511:        { id: 'bath', icon: '🛁', name: '整洁浴室', desc: '卫浴摆好浴缸、马桶、洗手台，且不少于 5 件', test: function () { const c = isoState.spaces.f2.items; return c.length >= 5 && _hasAny(c, ['bathtub']) && _hasAny(c, ['toilet']) && _hasAny(c, ['sink']); } },
+8512:        { id: 'garden', icon: '🪴', name: '绿意小院', desc: '全屋绿植达到 6 件', test: function () { return _isoCountCat('plant') >= 6; } },
+8513:        { id: 'home', icon: '🏡', name: '暖暖的家', desc: '全屋家具达到 30 件', test: function () { return _isoCountAny(FURN_DEF ? Object.keys(FURN_DEF) : []) >= 30; } }
+8516:    function _checkIsoAwards(silent) {
+8518:        ISO_AWARDS.forEach(function (a) {
+8519:            if (isoState.awards.indexOf(a.id) >= 0) return;
+8522:            if (ok) { isoState.awards.push(a.id); newly = a; }
+8525:            _isoSave();
+8527:            _renderIsoAwardsRow();
+8530:    function _renderIsoAwardsRow() {
+8531:        const wrap = document.getElementById('isoAwardsRow');
+8533:        wrap.innerHTML = '<span class="text-[10px] text-[#B08968]">成就：</span>' + ISO_AWARDS.map(function (a) {
+8534:            const on = isoState.awards.indexOf(a.id) >= 0;
+8535:            return '<span class="iso-award-chip ' + (on ? 'on' : '') + '">' + a.icon + ' ' + a.name + (on ? ' ✓' : '') + '</span>';
+8538:    function showIsoAwards() {
+8539:        let mask = document.getElementById('isoAwardsMask');
+8542:        mask.className = 'iso-awards-mask';
+8543:        mask.id = 'isoAwardsMask';
+8544:        mask.innerHTML = '<div class="iso-awards-panel p-5">' +
+8546:            '<button onclick="closeIsoAwards()" class="text-xs text-[#B08968] px-2 py-1 rounded-full border border-[#F5DEC2] bg-white">关闭</button></div>' +
+8547:            ISO_AWARDS.map(function (a) {
+8548:                const on = isoState.awards.indexOf(a.id) >= 0;
+8554:        mask.addEventListener('click', function (e) { if (e.target === mask) closeIsoAwards(); });
+8557:    function closeIsoAwards() {
+8558:        const mask = document.getElementById('isoAwardsMask');
+8563:    const ISO_COMBOS = [
+8568:    function _renderIsoCombos() {
+8569:        const wrap = document.getElementById('isoComboRow');
+8571:        wrap.innerHTML = '<span class="text-[10px] text-[#B08968] mr-1">组合：</span>' + ISO_COMBOS.map(function (c) {
+8572:            return '<button class="iso-space-tab" onclick="applyIsoCombo(\'' + c.key + '\')">' + c.icon + ' ' + c.label + '</button>';
+8575:    function applyIsoCombo(key) {
+8576:        const combo = ISO_COMBOS.find(c => c.key === key);
+8578:        isoPushUndo();
+8579:        const cols = ISO_GRID.cols, rows = ISO_GRID.rows;
+8580:        const items = isoState.spaces[isoSpaceKey].items;
+8599:        _isoSave();
+8600:        _renderIsoItems();
+8605:    function _renderIsoLayoutRow() {
+8606:        const wrap = document.getElementById('isoLayoutRow');
+8609:        wrap.innerHTML = '<span class="text-[10px] text-[#B08968]">布置方案：</span>' + isoState.slots.map(function (s, i) {
+8610:            const active = isoState.slot === i;
+8612:            return '<button class="iso-space-tab ' + (active ? 'selected' : '') + '" onclick="isoSetSlot(' + i + ')">方案' + names[i] + (has ? ' 📁' : ' 📂') + (active ? ' ✓' : '') + '</button>';
+8613:        }).join('') + '<button class="iso-theme-btn" onclick="isoSaveSlot()">💾 存入方案' + names[isoState.slot] + '</button>';
+8615:    function isoSetSlot(i) {
+8616:        if (i === isoState.slot) return;
+8617:        isoState.slots[isoState.slot] = JSON.parse(JSON.stringify(isoState.spaces)); // 先把当前布置固化进当前方案
+8618:        if (isoState.slots[i]) {
+8619:            isoState.spaces = JSON.parse(JSON.stringify(isoState.slots[i]));
+8622:            isoState.spaces = {};
+8623:            ISO_SPACES.forEach(sp => { isoState.spaces[sp.key] = { items: [] }; });
+8626:        isoState.slot = i;
+8627:        isoSelId = null;
+8628:        isoPushUndo(); // 切换前快照：Ctrl+Z 可回到切换前的布置
+8629:        _isoSave();
+8630:        _renderIsoLayoutRow();
+8631:        if (isoEditOpen) { _renderIsoItems(); _updateIsoItemBar(); } else { _renderIsoHouse(); }
+8633:    function isoSaveSlot() {
+8634:        isoState.slots[isoState.slot] = JSON.parse(JSON.stringify(isoState.spaces));
+8635:        _isoSave();
+8636:        _renderIsoLayoutRow();
+8637:        showToast('💾 当前布置已存入方案' + ['一', '二', '三'][isoState.slot]);
+8642:        const G = ISO_GRID;
+8643:        const theme = ISO_THEMES[_spaceTheme(isoSpaceKey)] || ISO_THEMES.beach;
+8644:        const sp = ISO_SPACES.find(s => s.key === isoSpaceKey);
+8645:        const night = !!isoState.night;
+8651:        _pushWalls(out, null, P, 1, theme, G, { stickers: _spaceTheme(isoSpaceKey) === 'cyber', night: night });
+8669:        isoState.spaces[isoSpaceKey].items.slice().sort(function (a, b) { return (a.gx + a.gy) - (b.gx + b.gy); }).forEach(function (it) {
+8671:            const frag = _furnSVGHTML(it.k, 1, p[0], p[1], _spaceTheme(isoSpaceKey), it.rot, it);
+8677:    function exportIsoShot() {
+8678:        const svg = isoEditOpen ? _editorRoomSvg() : _lastOverviewSvg;
+8690:                    ctx.fillStyle = isoState.night ? '#323763' : '#FDF6EC';
+8695:                    a.download = '栗子小屋-' + (isoEditOpen ? isoSpaceKey : '全屋') + '-' + new Date().toISOString().slice(0, 10) + '.png';
+8707:    let isoPals = [];
+8708:    function isoPalsOn() { return isoState && isoState.pals !== false; }
+8709:    function toggleIsoPals() {
+8710:        isoState.pals = !isoPalsOn();
+8711:        _isoSave();
+8712:        const b = document.getElementById('isoPalsBtn');
+8713:        if (b) b.innerHTML = isoState.pals ? '🚶 小人' : '🙈 隐身';
+8714:        if (isoState.pals && isoEditOpen) startIsoPals(); else stopIsoPals();
+8715:        showToast(isoState.pals ? '🚶 小人回来啦' : '🙈 小人先躲起来了');
+8717:    function _palSeats() { return isoState.spaces[isoSpaceKey].items.filter(it => ['sofa1', 'sofa2', 'chair1', 'bean', 'gpink', 'gchair', 'rocker'].indexOf(it.k) >= 0); }
+8718:    function _palBeds() { return isoState.spaces[isoSpaceKey].items.filter(it => it.k === 'bed1' || it.k === 'bed2'); }
+8721:        if (!isoEditOpen || !isoState || !isoState.spaces[isoSpaceKey] || !document.getElementById('isoPalsLayer')) return;
+8723:        const G = ISO_GRID;
+8724:        const night = !!isoState.night;
+8738:        const p = _isoPos(tx + 0.5, ty + 0.5);
+8755:    function startIsoPals() {
+8756:        stopIsoPals();
+8757:        if (!isoEditOpen || !isoPalsOn()) return;
+8758:        const world = document.getElementById('isoWorld');
+8761:        layer.id = 'isoPalsLayer';
+8765:        isoPals = uids.map(function (uid) {
+8767:            el.className = 'iso-pal-char';
+8769:            const gx = Math.floor(Math.random() * ISO_GRID.cols), gy = Math.floor(Math.random() * ISO_GRID.rows);
+8770:            const p = _isoPos(gx + 0.5, gy + 0.5);
+8777:        isoPals.forEach(function (pal) { _palSchedule(pal); });
+8779:    function stopIsoPals() {
+8780:        isoPals.forEach(function (pal) { if (pal.timer) clearTimeout(pal.timer); if (pal.el && pal.el.parentNode) pal.el.parentNode.removeChild(pal.el); });
+8781:        isoPals = [];
+8782:        const layer = document.getElementById('isoPalsLayer');
+8786:    (function _bindIsoEvents() {
+8787:        const vp = document.getElementById('isoViewport');
+8790:        let isoEmptyDrag = null;
+8791:        let isoPinch = null;
+8792:        let isoLastPointerType = 'mouse';
+8793:        vp.addEventListener('wheel', function (e) { e.preventDefault(); _isoZoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.1 : 0.9); }, { passive: false });
+8795:            isoLastPointerType = ev.pointerType || 'mouse';
+8799:            _clearIsoHold();
+8800:            if (itemEl && isoLastPointerType !== 'mouse') {
+8801:                isoHold = { id: itemEl.dataset.id, x: ev.clientX, y: ev.clientY };
+8802:                isoHoldTimer = setTimeout(function () {
+8803:                    const h = isoHold;
+8804:                    isoHold = null; isoHoldTimer = null;
+8807:                    if (isoDrag && isoDrag.id === h.id) {
+8808:                        try { isoDrag.el.classList.remove('iso-dragging'); } catch (e) {}
+8809:                        const hi = document.getElementById('isoCellHi');
+8811:                        isoDrag = null;
+8814:                    _openIsoCtx(h.x, h.y, h.id);
+8818:            if (activePtrs.size === 2 && !isoDrag && !isoHeld && !isoLibDrag) {
+8820:                isoPinch = { d: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), mx: (pts[0].x + pts[1].x) / 2, my: (pts[0].y + pts[1].y) / 2 };
+8821:                isoEmptyDrag = null;
+8822:                if (isoPanDrag) { isoPanDrag = null; vp.classList.remove('iso-panning'); }
+8825:            if (isoSpaceHeld || ev.button === 1) { _startPan(ev); return; }
+8827:            if (isoHeld) { _isoTapPlace(ev); return; } // 手持家具：点房间即放置
+8828:            if (itemEl) { _isoItemDragStart(itemEl, ev); }
+8829:            else { isoEmptyDrag = { sx: ev.clientX, sy: ev.clientY, px: isoPan.x, py: isoPan.y, moved: false }; }
+8835:            if (el && isoLastPointerType === 'mouse') _openIsoCtx(e.clientX, e.clientY, el.dataset.id);
+8840:            if (isoHold && Math.hypot(ev.clientX - isoHold.x, ev.clientY - isoHold.y) > 8) _clearIsoHold();
+8841:            if (isoCtxEl && isoDrag) {
+8843:                try { isoDrag.el.classList.remove('iso-dragging'); } catch (e) {}
+8844:                const hi2 = document.getElementById('isoCellHi');
+8846:                isoDrag = null;
+8849:            if (isoPinch && activePtrs.size >= 2) {
+8853:                if (isoPinch.d > 10 && nd > 10) _isoZoomAt(nmx, nmy, nd / isoPinch.d);
+8854:                isoPan.x += nmx - isoPinch.mx; isoPan.y += nmy - isoPinch.my;
+8855:                _applyIsoTransform();
+8856:                isoPinch.d = nd; isoPinch.mx = nmx; isoPinch.my = nmy;
+8859:            if (isoPanDrag) { isoPan.x = isoPanDrag.px + (ev.clientX - isoPanDrag.sx); isoPan.y = isoPanDrag.py + (ev.clientY - isoPanDrag.sy); _applyIsoTransform(); return; }
+8860:            if (isoDrag) { _isoItemMove(ev); return; }
+8861:            if (isoLibDrag) { _isoLibMove(ev); return; }
+8862:            if (isoHeld) {
+8864:                const hi = document.getElementById('isoHeldHi');
+8867:                    const gx = Math.max(0, Math.min(ISO_GRID.cols - 1, Math.floor(g.gx)));
+8868:                    const gy = Math.max(0, Math.min(ISO_GRID.rows - 1, Math.floor(g.gy)));
+8869:                    const p = _isoPos(gx, gy);
+8878:            if (isoEmptyDrag) {
+8880:                const dx = ev.clientX - isoEmptyDrag.sx, dy = ev.clientY - isoEmptyDrag.sy;
+8881:                if (!isoEmptyDrag.moved && Math.hypot(dx, dy) > 6) isoEmptyDrag.moved = true;
+8882:                if (isoEmptyDrag.moved) { isoPan.x = isoEmptyDrag.px + dx; isoPan.y = isoEmptyDrag.py + dy; _applyIsoTransform(); }
+8888:            if (activePtrs.size < 2) isoPinch = null;
+8889:            _clearIsoHold();
+8890:            if (isoPanDrag) { isoPanDrag = null; vp.classList.remove('iso-panning'); _isoSave(); return; }
+8891:            if (isoDrag) { _isoItemDrop(ev); return; }
+8892:            if (isoLibDrag) { _isoLibDrop(ev); return; }
+8893:            if (isoEmptyDrag) {
+8894:                if (!isoEmptyDrag.moved) { isoSelId = null; _renderIsoItems(); _updateIsoItemBar(); }
+8895:                isoEmptyDrag = null;
+8896:                _isoSave();
+8905:                if (e.shiftKey) isoRedo(); else isoUndo();
+8908:            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); isoRedo(); return; }
+8910:                _closeIsoCtx();
+8911:                const awards = document.getElementById('isoAwardsMask');
+8912:                if (awards) { closeIsoAwards(); return; }
+8913:                if (document.getElementById('gameRoomPage').classList.contains('iso-focus')) toggleIsoFocus();
+8916:            if (e.code === 'Space') { isoSpaceHeld = true; e.preventDefault(); }
+8917:            else if (e.key === 'r' || e.key === 'R') { isoRotateSelected(); }
+8918:            else if (e.key === 'Delete' || e.key === 'Backspace') { if (isoSelId) { e.preventDefault(); isoRemoveSelected(); } }
+8920:        window.addEventListener('keyup', function (e) { if (e.code === 'Space') isoSpaceHeld = false; });
+9305:            const isOwner = (g.owner || 'shared') === myId; // 我是目标主人
+9306:            const canWithdraw = isShared || isOwner; // 取出：共同目标双方可取，个人目标只有本人能取
+9337:                            ${g.done ? '<span class="text-[10px] font-semibold text-white bg-gradient-to-r from-[#3B8C3B] to-[#5FBF5F] px-2 py-0.5 rounded-full">🏆 已完成</span>' : `<span class="text-[10px] text-[#B08968] border border-[#F5DEC2] px-2 py-0.5 rounded-full bg-[#FFFBF5]">${isShared ? '🌰🍅 共同' : (isOwner ? '个人' : 'TA的个人')}</span>`}
+9351:                    ${!isShared && !isOwner ? '<p class="text-[10px] text-[#B08968] text-center mt-1.5">💕 可以帮TA存钱，也可以随时撤回自己存的</p>' : ''}
+9541:        const isOwnGoal = (g.owner || 'shared') === appData.currentUserId;
+9563:            : (isOwnGoal
+10627:            'isoUndo', 'isoRedo', 'toggleIsoNight', 'exportIsoShot', 'toggleIsoFocus', 'showIsoAwards', 'closeIsoAwards', 'applyIsoCombo', 'isoSetSlot', 'isoSaveSlot', 'isoCtxAction', 'isoToggleSelected', 'dismissIsoTasks', 'toggleIsoPals',
+10630:            'openGameRoom', 'selectIsoSpace', 'closeIsoEdit', 'setIsoSpace', 'setIsoTheme', 'toggleIsoLib', 'clearIsoSpace', 'isoRotateSelected', 'isoRemoveSelected', 'setIsoLibCat', 'toggleIsoFloor', 'applyIsoSample', 'isoZoomBtn', 'fitIsoViewBtn',

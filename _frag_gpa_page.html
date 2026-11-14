@@ -1,0 +1,56 @@
+    <!-- 绩点计算器 -->
+    <div id="toolGpaPage" class="page safe-bottom">
+        <div class="sticky top-0 sticky-header border-b border-[#F5DEC2] px-4 py-3.5 flex items-center justify-between z-10">
+            <button onclick="closeToolPage()" class="text-[#85532E] flex items-center gap-1 font-medium px-2 py-1.5 rounded-xl hover:bg-[#FFF4E5] transition-colors"><span>←</span> 工具箱</button>
+            <span class="font-semibold text-[#5E3A20] text-base">🎓 绩点计算器</span>
+            <span class="w-14"></span>
+        </div>
+        <div class="px-5 pt-5 pb-8 max-w-lg mx-auto">
+            <div class="card p-4 mb-4">
+                <div class="flex items-center justify-between mb-2.5">
+                    <p class="text-xs text-[#B08968]">每行一门课：科目 / 学分 / 成绩</p>
+                    <button onclick="gpaAddRow()" class="text-[11px] px-2.5 py-1 rounded-lg bg-[#FFF4E5] border border-[#F5DEC2] text-[#A66D3A] font-medium active:scale-95 transition-all">＋ 加一门</button>
+                </div>
+                <div class="flex gap-2 mb-1.5">
+                    <p class="flex-1 text-[10px] text-[#C9B28F] pl-0.5">科目（选填）</p>
+                    <p class="w-16 text-[10px] text-[#C9B28F] text-center">学分</p>
+                    <p class="w-16 text-[10px] text-[#C9B28F] text-center">成绩</p>
+                    <p class="w-7 text-[10px] text-[#C9B28F]"></p>
+                </div>
+                <div id="gpaRows"></div>
+                <p class="text-[10px] text-[#C9B28F] mt-1">成绩填分数（0-100）或等级：优 / 良 / 中 / 及格 / 不及格</p>
+            </div>
+            <div class="card p-6 text-center">
+                <div id="gpaEmpty">
+                    <div class="text-4xl opacity-40 mb-2">🌰</div>
+                    <p class="text-xs text-[#C9B28F]">把课程一行一行加进来，自动算绩点</p>
+                </div>
+                <div id="gpaBox" class="hidden">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-xs text-[#B08968] mb-1">四分制 GPA</p>
+                            <p id="gpaMain4" class="text-3xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-[#B08968] mb-1">五分制 GPA</p>
+                            <p id="gpaMain5" class="text-3xl font-bold text-[#A66D3A] tracking-tight"></p>
+                        </div>
+                    </div>
+                    <p id="gpaSub" class="text-[11px] text-[#B08968] mt-3"></p>
+                    <p id="gpaNote" class="text-[10px] text-[#D9A56E] mt-1"></p>
+                    <button id="gpaCopyBtn" onclick="gpaCopy()" class="mt-3 px-5 py-2 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#D9A56E] to-[#A66D3A] shadow-md active:scale-95 transition-all">📋 复制结果</button>
+                </div>
+            </div>
+            <details class="card p-4 mt-4">
+                <summary class="text-xs text-[#A66D3A] font-medium cursor-pointer select-none">查看绩点换算规则（各校略有差异）</summary>
+                <div class="text-[11px] text-[#85532E] leading-relaxed mt-2.5 space-y-1.5">
+                    <p>· 算法：GPA = Σ(单科绩点 × 该科学分) ÷ 总学分（按学分加权，不是各科成绩简单平均）</p>
+                    <p>· 四分制（主流十段）：90-100→4.0 · 85-89→3.7 · 82-84→3.3 · 78-81→3.0 · 75-77→2.7 · 72-74→2.3 · 68-71→2.0 · 64-67→1.5 · 60-63→1.0 · 60以下→0</p>
+                    <p>· 五分制（五段）：90-100→5 · 80-89→4 · 70-79→3 · 60-69→2 · 60以下→0</p>
+                    <p>· 等级折算：优→95 · 良→85 · 中→75 · 及格→65 · 不及格→50</p>
+                    <p class="text-[#B08968]">· 有的学校分段不同（如部分学校用 3.67/3.33 细分，北大用连续公式 4−3(100−X)²/1600），结果以本校教务系统为准</p>
+                </div>
+            </details>
+            <p class="text-[10px] text-[#C9B28F] text-center mt-4">本地离线计算，无需联网</p>
+        </div>
+    </div>

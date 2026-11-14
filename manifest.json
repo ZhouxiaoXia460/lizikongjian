@@ -1,0 +1,25 @@
+{
+    "name": "栗子空间",
+    "short_name": "栗子空间",
+    "description": "两个人的小天地 🌰 — 手帐、记账、倒数日与我的小屋装修，全部数据本地保存",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#FFF9F0",
+    "theme_color": "#FFF9F0",
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
